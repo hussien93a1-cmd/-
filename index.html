@@ -1,0 +1,854 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>كباب الديرة - نظام المطعم</title>
+    
+    <!-- Libraries -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/react-router-dom@6/umd/react-router-dom.min.js" crossorigin></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+    <!-- Fonts & Config -->
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@200;300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: { sans: ['Cairo', 'sans-serif'] },
+            colors: {
+              primary: '#10B981',
+              secondary: '#3B82F6',
+              dark: '#1F2937',
+              light: '#F3F4F6'
+            }
+          }
+        }
+      }
+    </script>
+    <style>
+      body { font-family: 'Cairo', sans-serif; background-color: #f3f4f6; -webkit-tap-highlight-color: transparent; }
+      ::-webkit-scrollbar { width: 6px; height: 6px; }
+      ::-webkit-scrollbar-track { background: #f1f1f1; }
+      ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+      ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+      .scrollbar-hide::-webkit-scrollbar { display: none; }
+      .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+      
+      @media print {
+        body * { visibility: hidden; }
+        #printable-area, #printable-area * { visibility: visible; }
+        #printable-area { position: absolute; left: 0; top: 0; width: 100%; background: white; color: black; padding: 0; margin: 0; }
+        @page { margin: 0; size: auto; }
+      }
+    </style>
+<script type="importmap">
+{
+  "imports": {
+    "react": "https://esm.sh/react@^19.2.3",
+    "react-dom/": "https://esm.sh/react-dom@^19.2.3/",
+    "react/": "https://esm.sh/react@^19.2.3/",
+    "react-router-dom": "https://esm.sh/react-router-dom@^7.12.0",
+    "lucide-react": "https://esm.sh/lucide-react@^0.562.0",
+    "html2canvas": "https://esm.sh/html2canvas@^1.4.1"
+  }
+}
+</script>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useContext, createContext, useMemo, useRef } = React;
+        const { HashRouter, Routes, Route, NavLink, Outlet, useNavigate, useLocation, Navigate } = ReactRouterDOM;
+
+        // --- ICONS (Minimal SVG Implementation) ---
+        const Icon = ({ path, size = 24, className = "", color = "currentColor" }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+                {path}
+            </svg>
+        );
+
+        // Icon Paths
+        const iconPaths = {
+            Search: <circle cx="11" cy="11" r="8" /><path d="m21 21-4.3-4.3" />,
+            Plus: <path d="M5 12h14"/><path d="M12 5v14"/>,
+            Minus: <path d="M5 12h14"/>,
+            Trash2: <path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/>,
+            ShoppingBag: <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/>,
+            CreditCard: <rect width="20" height="14" x="2" y="5" rx="2"/><line x1="2" x2="22" y1="10" y2="10"/>,
+            Banknote: <rect width="20" height="12" x="2" y="6" rx="2"/><circle cx="12" cy="12" r="2"/><path d="M6 12h.01M18 12h.01"/>,
+            Utensils: <path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2v0a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"/>,
+            Clock: <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>,
+            Receipt: <path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1Z"/><path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8"/><path d="M12 17V7"/>,
+            ArrowRight: <path d="M5 12h14"/><path d="m12 5 7 7-7 7"/>,
+            Printer: <polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect width="12" height="8" x="6" y="14"/>,
+            ChefHat: <path d="M6 13.87A4 4 0 0 1 7.41 6a5.11 5.11 0 0 1 1.05-1.54 5 5 0 0 1 7.08 0A5.11 5.11 0 0 1 16.59 6 4 4 0 0 1 18 13.87V21H6Z"/><line x1="6" x2="18" y1="17" y2="17"/>,
+            X: <path d="M18 6 6 18"/><path d="m6 6 12 12"/>,
+            ChevronDown: <path d="m6 9 6 6 6-6"/>,
+            LayoutGrid: <rect width="7" height="7" x="3" y="3" rx="1"/><rect width="7" height="7" x="14" y="3" rx="1"/><rect width="7" height="7" x="14" y="14" rx="1"/><rect width="7" height="7" x="3" y="14" rx="1"/>,
+            Grid: <rect width="18" height="18" x="3" y="3" rx="2"/><path d="M3 9h18"/><path d="M9 21V9"/>,
+            FileText: <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><line x1="16" x2="8" y1="13" y2="13"/><line x1="16" x2="8" y1="17" y2="17"/><polyline points="10 9 9 9 8 9"/>,
+            Settings: <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.47a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/>,
+            DollarSign: <line x1="12" x2="12" y1="2" y2="22"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>,
+            LogOut: <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/>,
+            TrendingUp: <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/>,
+            TrendingDown: <polyline points="23 18 13.5 8.5 8.5 13.5 1 6"/><polyline points="17 18 23 18 23 12"/>,
+            Download: <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/>,
+            ArrowUpRight: <path d="M7 7h10v10"/><path d="M7 17 17 7"/>,
+            ArrowDownRight: <path d="m7 7 10 10"/><path d="M17 7v10H7"/>,
+            ArrowUpCircle: <circle cx="12" cy="12" r="10"/><path d="m16 12-4-4-4 4"/><path d="M12 16V8"/>,
+            ArrowDownCircle: <circle cx="12" cy="12" r="10"/><path d="m16 12-4 4-4-4"/><path d="M12 8v8"/>,
+            Share2: <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" x2="15.42" y1="13.51" y2="17.49"/><line x1="15.41" x2="8.59" y1="6.51" y2="10.49"/>,
+            Loader2: <path d="M21 12a9 9 0 1 1-6.219-8.56"/>,
+            ListFilter: <path d="M3 6h18"/><path d="M7 12h10"/><path d="M10 18h4"/>,
+            Box: <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" x2="12" y1="22.08" y2="12"/>,
+            Wallet: <path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/><path d="M3 5v14a2 2 0 0 0 2 2h16v-5"/><path d="M18 12a2 2 0 0 0 0 4h4v-4Z"/>,
+            Users: <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>,
+            Save: <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/>,
+            AlertTriangle: <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" x2="12" y1="9" y2="13"/><line x1="12" x2="12.01" y1="17" y2="17"/>,
+            UtensilsCrossed: <path d="m16 2-2.3 2.3a3 3 0 0 0 0 4.2l1.8 1.8a3 3 0 0 0 4.2 0L22 8"/><path d="M15 15 3.3 3.3a4.2 4.2 0 0 0 0 6l7.3 7.3c.7.7 2 .7 2 0L19 10"/><path d="M17 17 6.3 6.3a4.2 4.2 0 0 1 0-6L20 6.5"/><path d="M12 21.8v-2.1a1 1 0 0 1 1-1h2.2a1 1 0 0 1 1 1v2.1a2 2 0 0 1-2 2h-0.2a2 2 0 0 1-2-2z"/>,
+            RotateCcw: <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/>,
+            Edit2: <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/>,
+            Eye: <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/>,
+            Wifi: <path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M1.42 9a16 16 0 0 1 21.16 0"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><line x1="12" x2="12.01" y1="20" y2="20"/>,
+            Bluetooth: <path d="m7 7 10 10-5 5V2l5 5L7 17"/>,
+            Usb: <circle cx="10" cy="7" r="1"/><circle cx="4" cy="20" r="1"/><path d="M4.7 19.3 19 5"/><path d="m21 3-3 1 2 2Z"/><path d="M9.26 7.68 5 12l2 5"/><path d="m10 14 5 2 3.5-3.5"/><path d="m18 12 1-1 1 1-1 1Z"/>,
+            Smartphone: <rect width="14" height="20" x="5" y="2" rx="2" ry="2"/><path d="M12 18h.01"/>,
+            Calendar: <rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/>,
+            Coins: <circle cx="8" cy="8" r="6"/><path d="M18.09 10.37A6 6 0 1 1 10.34 18"/><path d="M7 6h1v4"/><path d="m16.71 13.88.7.71-2.82 2.82"/><path d="M11 7.23a4 4 0 0 1 4 0"/>,
+            CalendarCheck: <rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/><path d="m9 16 2 2 4-4"/>,
+            MessageCircle: <path d="m3 21 1.9-5.7a8.5 8.5 0 1 1 3.8 3.8z"/>,
+            CheckCircle: <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>,
+            Lock: <rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+        };
+
+        const Icons = Object.keys(iconPaths).reduce((acc, key) => {
+            acc[key] = (props) => <Icon path={iconPaths[key]} {...props} />;
+            return acc;
+        }, {});
+
+        // Destructure Icons for easier use
+        const { 
+            Search, Plus, Minus, Trash2, ShoppingBag, CreditCard, Banknote, Utensils, Clock, Receipt, 
+            ArrowRight, Printer, ChefHat, X, ChevronDown, LayoutGrid, Grid, FileText, Settings, DollarSign, 
+            LogOut, TrendingUp, Download, ArrowUpRight, ArrowDownRight, Share2, Loader2, ListFilter, Box, 
+            Wallet, Users, Save, AlertTriangle, UtensilsCrossed, RotateCcw, Edit2, Eye, Wifi, Bluetooth, 
+            Usb, Smartphone, Calendar, Coins, CalendarCheck, MessageCircle, CheckCircle, TrendingDown,
+            ArrowUpCircle, ArrowDownCircle, Lock
+        } = Icons;
+
+
+        // --- CONSTANTS ---
+        const TAX_RATE = 0.0;
+        const INITIAL_CATEGORIES = [
+          { id: 'cat1', name: 'مشويات' },
+          { id: 'cat2', name: 'وجبات غربية' },
+          { id: 'cat3', name: 'مقبلات' },
+          { id: 'cat4', name: 'مشروبات' },
+        ];
+        const INITIAL_PRODUCTS = [];
+        const INITIAL_TABLES = Array.from({ length: 12 }, (_, i) => ({
+          id: `t${i + 1}`, name: `طاولة ${i + 1}`, capacity: 4, status: 'available',
+        }));
+        const CURRENT_USER = { id: 'u1', name: 'أحمد الكاشير', role: 'admin' };
+
+        // --- CONTEXT ---
+        const StoreContext = createContext();
+
+        const StoreProvider = ({ children }) => {
+          const [products, setProducts] = useState(INITIAL_PRODUCTS);
+          const [categories, setCategories] = useState(INITIAL_CATEGORIES);
+          const [tables, setTables] = useState(INITIAL_TABLES);
+          const [orders, setOrders] = useState([]);
+          const [expenses, setExpenses] = useState([]);
+          const [employees, setEmployees] = useState([]);
+          const [workLogs, setWorkLogs] = useState([]);
+          const [currentOrder, setCurrentOrder] = useState(null);
+          const [printerConfig, setPrinterConfig] = useState({
+            type: 'bluetooth', paperSize: '80mm', target: '', autoPrintReceipt: true, autoPrintKitchen: true
+          });
+
+          // Storage
+          useEffect(() => {
+            const load = (k) => JSON.parse(localStorage.getItem(k) || 'null');
+            const o = load('pos_orders'), t = load('pos_tables'), p = load('pos_products'),
+                  c = load('pos_categories'), e = load('pos_expenses'), emp = load('pos_employees'),
+                  w = load('pos_worklogs'), pr = load('pos_printer');
+            if (o) setOrders(o); if (t) setTables(t); if (p) setProducts(p); if (c) setCategories(c);
+            if (e) setExpenses(e); if (emp) setEmployees(emp); if (w) setWorkLogs(w); if (pr) setPrinterConfig(pr);
+          }, []);
+
+          useEffect(() => {
+            const save = (k, v) => localStorage.setItem(k, JSON.stringify(v));
+            save('pos_orders', orders); save('pos_tables', tables); save('pos_products', products);
+            save('pos_categories', categories); save('pos_expenses', expenses); save('pos_employees', employees);
+            save('pos_worklogs', workLogs); save('pos_printer', printerConfig);
+          }, [orders, tables, products, categories, expenses, employees, workLogs, printerConfig]);
+
+          // Logic
+          const startNewOrder = (type, tableId) => {
+            setCurrentOrder({
+              id: crypto.randomUUID(), orderNumber: orders.length + 1, type, tableId,
+              status: 'pending', items: [], subtotal: 0, tax: 0, total: 0, totalCost: 0, createdAt: new Date().toISOString(),
+            });
+          };
+
+          const calculateTotals = (items) => {
+            const subtotal = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+            const totalCost = items.reduce((sum, item) => sum + (item.cost * item.quantity), 0);
+            const tax = subtotal * TAX_RATE;
+            return { subtotal, tax, total: subtotal + tax, totalCost };
+          };
+
+          const addToCart = (product, variant, quantity = 1) => {
+            if (!currentOrder) {
+                const tempItems = [{
+                    id: crypto.randomUUID(), productId: product.id, productName: product.name,
+                    variantId: variant.id, variantName: variant.name, price: variant.price, cost: variant.cost, quantity
+                }];
+                const totals = calculateTotals(tempItems);
+                setCurrentOrder({
+                    id: crypto.randomUUID(), orderNumber: orders.length + 1, type: 'takeaway', status: 'pending',
+                    items: tempItems, ...totals, createdAt: new Date().toISOString()
+                });
+                return;
+            }
+            const updatedItems = [...currentOrder.items, {
+                id: crypto.randomUUID(), productId: product.id, productName: product.name,
+                variantId: variant.id, variantName: variant.name, price: variant.price, cost: variant.cost, quantity
+            }];
+            const totals = calculateTotals(updatedItems);
+            setCurrentOrder({ ...currentOrder, items: updatedItems, ...totals });
+          };
+
+          const updateCartItemQuantity = (itemId, quantity) => {
+            if (!currentOrder || quantity < 1) return;
+            const updatedItems = currentOrder.items.map(item => item.id === itemId ? { ...item, quantity } : item);
+            setCurrentOrder({ ...currentOrder, items: updatedItems, ...calculateTotals(updatedItems) });
+          };
+
+          const removeFromCart = (itemId) => {
+             if(!currentOrder) return;
+             const updatedItems = currentOrder.items.filter(item => item.id !== itemId);
+             setCurrentOrder({ ...currentOrder, items: updatedItems, ...calculateTotals(updatedItems) });
+          }
+
+          const clearCart = () => currentOrder && setCurrentOrder({ ...currentOrder, items: [], subtotal: 0, tax: 0, total: 0, totalCost: 0 });
+
+          const saveOrder = (asPending = true) => {
+            if (!currentOrder) return;
+            const updatedOrder = { ...currentOrder, status: asPending ? 'pending' : 'completed' };
+            const exists = orders.findIndex(o => o.id === currentOrder.id);
+            const newOrders = [...orders];
+            if (exists > -1) newOrders[exists] = updatedOrder; else newOrders.push(updatedOrder);
+            setOrders(newOrders);
+
+            if (currentOrder.type === 'dine-in' && currentOrder.tableId) {
+                setTables(prev => prev.map(t => t.id === currentOrder.tableId ? { ...t, status: 'occupied', currentOrderId: currentOrder.id } : t));
+            }
+            if (asPending) setCurrentOrder(null);
+          };
+
+          const checkoutOrder = (paymentMethod) => {
+            if (!currentOrder) return;
+            const completed = { ...currentOrder, status: 'completed', paymentMethod };
+            const exists = orders.findIndex(o => o.id === completed.id);
+            const newOrders = [...orders];
+            if (exists > -1) newOrders[exists] = completed; else newOrders.push(completed);
+            setOrders(newOrders);
+            if (currentOrder.type === 'dine-in' && currentOrder.tableId) {
+                setTables(prev => prev.map(t => t.id === currentOrder.tableId ? { ...t, status: 'available', currentOrderId: undefined } : t));
+            }
+            setCurrentOrder(null);
+          };
+
+          const openExistingOrder = (id) => {
+            const o = orders.find(x => x.id === id);
+            if (o && o.status === 'pending') setCurrentOrder(o);
+          };
+
+          const cancelOrder = (id) => {
+              const o = orders.find(x => x.id === id);
+              if(!o) return;
+              setOrders(prev => prev.map(x => x.id === id ? { ...x, status: 'cancelled' } : x));
+              if(currentOrder?.id === id) setCurrentOrder(null);
+              if(o.type === 'dine-in' && o.tableId) setTables(prev => prev.map(t => t.id === o.tableId ? { ...t, status: 'available', currentOrderId: undefined } : t));
+          }
+
+          const updateTableCount = (count) => {
+            if (count < 1) return;
+            setTables(prev => {
+                if (count > prev.length) {
+                    const add = Array.from({ length: count - prev.length }, (_, i) => ({
+                        id: `t${prev.length + i + 1}`, name: `طاولة ${prev.length + i + 1}`, capacity: 4, status: 'available'
+                    }));
+                    return [...prev, ...add];
+                }
+                return prev.slice(0, count);
+            });
+          };
+
+          const addProduct = (p) => setProducts([...products, p]);
+          const updateProduct = (p) => setProducts(products.map(x => x.id === p.id ? p : x));
+          const deleteProduct = (id) => setProducts(products.filter(x => x.id !== id));
+          const addExpense = (e) => setExpenses([...expenses, e]);
+          const deleteExpense = (id) => setExpenses(expenses.filter(x => x.id !== id));
+          const addEmployee = (e) => setEmployees([...employees, e]);
+          const deleteEmployee = (id) => setEmployees(employees.filter(x => x.id !== id));
+          const addWorkLog = (l) => setWorkLogs([...workLogs, l]);
+          const deleteWorkLog = (id) => setWorkLogs(workLogs.filter(x => x.id !== id));
+
+          return (
+            <StoreContext.Provider value={{
+              products, categories, tables, orders, expenses, employees, workLogs, currentOrder, currentUser: CURRENT_USER, printerConfig,
+              startNewOrder, addToCart, removeFromCart, updateCartItemQuantity, clearCart, saveOrder, checkoutOrder, openExistingOrder, cancelOrder,
+              addProduct, updateProduct, deleteProduct, addExpense, deleteExpense, addEmployee, deleteEmployee, addWorkLog, deleteWorkLog,
+              updateTableCount, setPrinterConfig: (c) => setPrinterConfig(c), updatePrinterConfig: (c) => setPrinterConfig(c)
+            }}>
+              {children}
+            </StoreContext.Provider>
+          );
+        };
+        const useStore = () => useContext(StoreContext);
+
+
+        // --- COMPONENTS ---
+
+        // Layout
+        const Layout = () => {
+            const location = useLocation();
+            const navItems = [
+                { to: '/', icon: <LayoutGrid size={24} />, label: 'الكاشير (POS)' },
+                { to: '/tables', icon: <Grid size={24} />, label: 'الطاولات والسفري' },
+                { to: '/reports', icon: <FileText size={24} />, label: 'التقارير' },
+                { to: '/finance', icon: <DollarSign size={24} />, label: 'الحسابات' },
+                { to: '/settings', icon: <Settings size={24} />, label: 'الإعدادات' },
+            ];
+
+            return (
+                <div className="flex h-screen bg-gray-100 overflow-hidden">
+                    <aside className="w-20 md:w-64 bg-slate-900 text-white flex flex-col shadow-xl z-20 transition-all">
+                        <div className="p-4 md:p-6 flex items-center justify-center md:justify-start gap-3 border-b border-slate-700">
+                            <ChefHat size={32} className="text-primary shrink-0" />
+                            <h1 className="hidden md:block text-xl font-bold tracking-wider">كباب الديرة</h1>
+                        </div>
+                        <nav className="flex-1 py-6 space-y-2 px-2">
+                            {navItems.map(item => (
+                                <NavLink key={item.to} to={item.to} className={({ isActive }) => `flex items-center justify-center md:justify-start gap-3 px-2 md:px-3 py-3 rounded-xl transition-all duration-200 ${isActive ? 'bg-primary text-white shadow-lg' : 'text-slate-400 hover:bg-slate-800 hover:text-white'}`}>
+                                    <div className="flex-shrink-0">{item.icon}</div>
+                                    <span className="hidden md:block font-medium">{item.label}</span>
+                                </NavLink>
+                            ))}
+                        </nav>
+                        <div className="p-4 border-t border-slate-700">
+                             <button className="flex items-center justify-center md:justify-start gap-3 px-3 py-2 text-red-400 hover:text-red-300 w-full rounded-lg hover:bg-slate-800 transition-colors">
+                                <LogOut size={20} />
+                                <span className="hidden md:block">تسجيل خروج</span>
+                             </button>
+                        </div>
+                    </aside>
+                    <main className="flex-1 overflow-hidden relative flex flex-col">
+                        <header className="bg-white shadow-sm h-14 flex items-center justify-between px-6 z-10 print:hidden">
+                            <h2 className="text-lg font-bold text-gray-700">{navItems.find(i => i.to === location.pathname)?.label || 'الرئيسية'}</h2>
+                            <div className="flex items-center gap-4">
+                                <div className="text-sm text-gray-500 hidden md:block">{new Date().toLocaleDateString('ar-SA')}</div>
+                                <div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center text-gray-600 font-bold">A</div>
+                            </div>
+                        </header>
+                        <div className="flex-1 overflow-auto p-4 md:p-6 bg-slate-50/50 print:p-0 print:bg-white">
+                            <Outlet />
+                        </div>
+                    </main>
+                </div>
+            );
+        };
+
+        // --- PAGES ---
+
+        // POS
+        const POS = () => {
+            const { products, addToCart, currentOrder, startNewOrder, updateCartItemQuantity, saveOrder, checkoutOrder, clearCart, orders, openExistingOrder, printerConfig } = useStore();
+            const navigate = useNavigate();
+            const [searchQuery, setSearchQuery] = useState('');
+            const [selectedProductForVariant, setSelectedProductForVariant] = useState(null);
+            const [isCartOpen, setIsCartOpen] = useState(false);
+            const [printData, setPrintData] = useState(null);
+
+            const filteredProducts = useMemo(() => products.filter(p => p.name.includes(searchQuery) && p.isActive), [products, searchQuery]);
+            const pendingTakeawayOrders = useMemo(() => orders.filter(o => o.status === 'pending' && o.type === 'takeaway'), [orders]);
+            const cartTotalItems = currentOrder?.items.reduce((acc, item) => acc + item.quantity, 0) || 0;
+            const cartTotalPrice = currentOrder?.total || 0;
+            const CARD_COLORS = ['bg-gradient-to-br from-emerald-400 to-emerald-500', 'bg-gradient-to-br from-blue-400 to-blue-500', 'bg-gradient-to-br from-rose-400 to-rose-500', 'bg-gradient-to-br from-orange-400 to-orange-500'];
+
+            const handleProductClick = (p) => p.variants.length === 1 ? addToCart(p, p.variants[0]) : setSelectedProductForVariant(p);
+            const handlePrint = (type) => { if (currentOrder) { setPrintData({ order: currentOrder, type }); setTimeout(() => { window.print(); setPrintData(null); }, 100); }};
+            const handleCheckout = (method) => { if (!currentOrder) return; handlePrint('receipt'); checkoutOrder(method); setIsCartOpen(false); setTimeout(() => navigate('/tables'), 500); };
+
+            return (
+                <div className="flex flex-col lg:flex-row gap-4 lg:gap-6 h-full overflow-hidden relative">
+                    {selectedProductForVariant && (
+                        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+                            <div className="bg-white rounded-2xl w-full max-w-md p-6 shadow-2xl">
+                                <h3 className="text-xl font-bold mb-4 text-center">اختر النوع: {selectedProductForVariant.name}</h3>
+                                <div className="grid grid-cols-1 gap-3">
+                                    {selectedProductForVariant.variants.map(v => (
+                                        <button key={v.id} onClick={() => { addToCart(selectedProductForVariant, v); setSelectedProductForVariant(null); }} className="flex justify-between p-4 border-2 rounded-xl hover:border-primary hover:bg-emerald-50">
+                                            <span className="font-bold">{v.name}</span><span className="text-primary font-bold">{v.price} د.ع</span>
+                                        </button>
+                                    ))}
+                                </div>
+                                <button onClick={() => setSelectedProductForVariant(null)} className="mt-6 w-full py-3 bg-gray-200 rounded-xl font-bold">إلغاء</button>
+                            </div>
+                        </div>
+                    )}
+                    {printData && (
+                        <div id="printable-area" className="hidden print:block p-2" dir="rtl" style={{ width: printerConfig.paperSize === '58mm' ? '58mm' : 'auto' }}>
+                            <div className="text-center font-bold border-b-2 border-dashed border-black pb-4 mb-4">
+                                <h1 className="text-2xl mb-1">{printData.type === 'kitchen' ? '🧑‍🍳 تذكرة مطبخ' : 'كباب الديرة'}</h1>
+                                <div className="flex justify-between text-lg mt-2"><span>#{printData.order.orderNumber}</span><span>{printData.order.type === 'dine-in' ? `طاولة ${printData.order.tableId?.replace('t','')}` : 'سفري'}</span></div>
+                                <div className="text-sm text-left mt-1">{new Date().toLocaleString('ar-SA')}</div>
+                            </div>
+                            <div className="w-full">
+                                {printData.order.items.map((item, idx) => (
+                                    <div key={idx} className="flex justify-between py-2 border-b border-gray-200">
+                                        <div className="flex-1"><span className="text-xl font-bold">{item.quantity}x {item.productName}</span><div className="text-sm text-gray-600">{item.variantName}</div></div>
+                                        {printData.type === 'receipt' && <div className="text-lg font-bold">{(item.price * item.quantity).toFixed(2)}</div>}
+                                    </div>
+                                ))}
+                            </div>
+                             {printData.type === 'receipt' && (
+                                <div className="mt-4 border-t-2 border-black pt-2">
+                                    <div className="flex justify-between text-2xl font-bold mt-2"><span>الإجمالي</span><span>{printData.order.total.toFixed(2)}</span></div>
+                                </div>
+                            )}
+                        </div>
+                    )}
+                    <div className="flex-1 flex flex-col gap-4 overflow-hidden h-full order-1">
+                        <div className="relative shrink-0">
+                            <Search className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+                            <input type="text" placeholder="ابحث عن منتج..." className="w-full pl-4 pr-12 py-3 rounded-xl border focus:outline-none focus:ring-2 focus:ring-primary shadow-sm" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
+                        </div>
+                        <div className="flex-1 overflow-y-auto pr-1 pb-24 lg:pb-4">
+                            <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-4">
+                                {filteredProducts.map((product, index) => (
+                                    <div key={product.id} onClick={() => handleProductClick(product)} className="bg-white rounded-[1.5rem] shadow-sm hover:shadow-lg transition-all cursor-pointer overflow-hidden flex flex-col h-40">
+                                        <div className={`flex-[2] ${CARD_COLORS[index % CARD_COLORS.length]} flex items-center justify-center relative`}>
+                                            <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm"><ShoppingBag className="text-white" size={20} /></div>
+                                        </div>
+                                        <div className="flex-1 bg-white p-2 flex flex-col items-center justify-center text-center">
+                                            <h3 className="font-bold text-gray-800 text-sm truncate w-full px-2">{product.name}</h3>
+                                            <span className="text-red-500 font-bold text-sm">{product.variants[0].price} <span className="text-xs text-gray-400">د.ع</span></span>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+                    <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t shadow-lg lg:hidden z-40 flex items-center gap-4">
+                        <div className="flex-1 flex items-center gap-2">
+                            <div className="bg-slate-800 text-white w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm">{cartTotalItems}</div>
+                            <div className="flex flex-col"><span className="text-xs text-gray-500 font-bold">المجموع</span><span className="font-bold text-lg text-primary">{cartTotalPrice.toFixed(2)}</span></div>
+                        </div>
+                        <button onClick={() => setIsCartOpen(true)} className="bg-slate-800 text-white px-6 py-3 rounded-xl font-bold flex items-center gap-2 shadow-lg"><ShoppingBag size={20} /><span>الفاتورة</span></button>
+                    </div>
+                    <div className={`bg-white lg:rounded-3xl shadow-lg border-gray-100 order-2 shrink-0 flex flex-col overflow-hidden transition-all duration-300 ${isCartOpen ? 'fixed inset-0 z-50 w-full h-full rounded-none' : 'hidden lg:flex lg:w-[400px] lg:h-full border'}`}>
+                        <div className="p-4 border-b bg-gray-50 shrink-0">
+                            <div className="lg:hidden flex justify-end mb-2"><button onClick={() => setIsCartOpen(false)} className="p-2 bg-gray-200 rounded-full"><ChevronDown size={24} /></button></div>
+                            {!currentOrder ? (
+                                <div className="text-center">
+                                    <h3 className="font-bold text-gray-700 mb-4">اختر نوع الطلب الجديد</h3>
+                                    <div className="flex gap-2">
+                                        <button onClick={() => startNewOrder('dine-in')} className="flex-1 py-4 rounded-xl border-2 hover:border-primary flex flex-col items-center gap-2"><Utensils size={20} /><span className="font-bold">محلي</span></button>
+                                        <button onClick={() => startNewOrder('takeaway')} className="flex-1 py-4 rounded-xl border-2 hover:border-secondary flex flex-col items-center gap-2"><ShoppingBag size={20} /><span className="font-bold">سفري</span></button>
+                                    </div>
+                                </div>
+                            ) : (
+                                <div className="flex justify-between items-center">
+                                    <div><span className="text-xs font-bold uppercase px-2 py-1 rounded bg-blue-100 text-blue-600">{currentOrder.type}</span> {currentOrder.tableId && `T${currentOrder.tableId.replace('t','')}`} <div className="text-xs text-gray-400">#{currentOrder.orderNumber}</div></div>
+                                    <div className="flex gap-1">
+                                        <button onClick={() => handlePrint('kitchen')} className="p-2 bg-orange-50 text-orange-600 rounded-lg"><ChefHat size={18} /></button>
+                                        <button onClick={() => { saveOrder(true); setIsCartOpen(false); navigate('/tables'); }} className="flex items-center gap-1 text-sm bg-blue-50 text-blue-600 px-3 py-1.5 rounded-lg font-bold"><Receipt size={16} /> تعليق</button>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                        <div className="flex-1 overflow-y-auto p-4 space-y-2 bg-white">
+                            {!currentOrder ? (
+                                <div className="space-y-2">
+                                    <h4 className="font-bold text-gray-500 mb-2 flex items-center gap-2 text-xs"><Clock size={14}/> طلبات معلقة ({pendingTakeawayOrders.length})</h4>
+                                    {pendingTakeawayOrders.map(o => (
+                                        <div key={o.id} onClick={() => openExistingOrder(o.id)} className="p-3 border rounded-xl hover:bg-blue-50 cursor-pointer flex justify-between items-center">
+                                            <div><span className="font-bold">#{o.orderNumber}</span> <span className="text-xs text-gray-400">({o.items.length})</span></div>
+                                            <div className="font-bold text-secondary">{o.total.toFixed(2)}</div>
+                                        </div>
+                                    ))}
+                                </div>
+                            ) : (
+                                currentOrder.items.map(item => (
+                                    <div key={item.id} className="flex justify-between items-center p-2 bg-gray-50 rounded-xl">
+                                        <div className="flex-1"><div className="font-bold text-sm">{item.productName}</div><div className="text-[10px] text-gray-500">{item.variantName}</div><div className="text-primary font-bold">{item.price * item.quantity}</div></div>
+                                        <div className="flex items-center gap-2 bg-white rounded-lg p-1 shadow-sm">
+                                            <button onClick={() => updateCartItemQuantity(item.id, item.quantity - 1)} className="w-6 h-6 flex items-center justify-center">{item.quantity === 1 ? <Trash2 size={14} /> : <Minus size={14} />}</button>
+                                            <span className="font-bold w-4 text-center text-sm">{item.quantity}</span>
+                                            <button onClick={() => updateCartItemQuantity(item.id, item.quantity + 1)} className="w-6 h-6 flex items-center justify-center"><Plus size={14} /></button>
+                                        </div>
+                                    </div>
+                                ))
+                            )}
+                        </div>
+                        {currentOrder && (
+                            <div className="p-4 border-t bg-gray-50 shrink-0">
+                                <div className="flex justify-between font-bold text-lg mb-3"><span>الإجمالي</span><span>{currentOrder.total.toFixed(2)}</span></div>
+                                <div className="grid grid-cols-2 gap-2">
+                                    <button onClick={() => handleCheckout('cash')} className="bg-green-600 text-white py-3 rounded-xl font-bold flex items-center justify-center gap-2"><Banknote size={18} /> نقدي</button>
+                                    <button onClick={() => handleCheckout('card')} className="bg-blue-600 text-white py-3 rounded-xl font-bold flex items-center justify-center gap-2"><CreditCard size={18} /> شبكة</button>
+                                </div>
+                                <button onClick={() => { clearCart(); setIsCartOpen(false); navigate('/tables'); }} className="w-full mt-2 text-red-500 text-xs font-bold py-1.5">إلغاء الطلب</button>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            );
+        };
+
+        const Tables = () => {
+            const { tables, orders, startNewOrder, openExistingOrder } = useStore();
+            const navigate = useNavigate();
+            const pendingTakeawayOrders = useMemo(() => orders.filter(o => o.status === 'pending' && o.type === 'takeaway'), [orders]);
+
+            return (
+                <div className="h-full flex flex-col gap-6 pb-20">
+                    <div>
+                        <div className="flex justify-between items-center mb-6">
+                            <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2"><div className="p-2 bg-purple-100 rounded-lg text-purple-600"><Users size={20} /></div> إدارة الطاولات</h2>
+                            <div className="flex gap-2 text-xs font-bold"><span className="px-2 py-1 bg-white border rounded shadow-sm text-emerald-600">متاح ({tables.filter(t => t.status === 'available').length})</span><span className="px-2 py-1 bg-white border rounded shadow-sm text-rose-600">مشغول ({tables.filter(t => t.status === 'occupied').length})</span></div>
+                        </div>
+                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
+                            {tables.map(t => (
+                                <div key={t.id} onClick={() => { t.currentOrderId ? openExistingOrder(t.currentOrderId) : startNewOrder('dine-in', t.id); navigate('/'); }} className={`relative h-36 rounded-xl border cursor-pointer flex flex-col items-center justify-center gap-1 transition-all ${t.status === 'available' ? 'bg-white hover:border-emerald-400' : 'bg-rose-50 border-rose-200'}`}>
+                                    <div className={`absolute top-0 w-full h-1 ${t.status === 'available' ? 'bg-emerald-400' : 'bg-rose-500'}`}></div>
+                                    <div className={`w-12 h-12 rounded-full flex items-center justify-center text-lg font-bold mb-1 ${t.status === 'available' ? 'bg-gray-50 text-gray-600' : 'bg-rose-500 text-white'}`}>{t.id.replace('t','')}</div>
+                                    <h3 className="text-sm font-bold text-gray-700">{t.name}</h3>
+                                    <div className="text-xs text-gray-400 bg-white/50 px-2 rounded-full">{t.capacity} مقاعد</div>
+                                    {t.status === 'occupied' && <div className="absolute top-2 left-2 animate-pulse"><Clock size={14} className="text-rose-500"/></div>}
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                    <div className="w-full h-px bg-gray-200 my-2"></div>
+                    <div>
+                        <h2 className="text-xl font-bold text-gray-800 mb-6 flex items-center gap-2"><div className="p-2 bg-blue-100 rounded-lg text-blue-600"><ShoppingBag size={20} /></div> سفري</h2>
+                        <div className="flex flex-col lg:flex-row gap-4 overflow-x-auto pb-4">
+                            <button onClick={() => { startNewOrder('takeaway'); navigate('/'); }} className="min-w-[160px] h-24 rounded-xl border-2 border-dashed border-blue-300 bg-blue-50/50 flex flex-col items-center justify-center gap-2 text-blue-700 font-bold hover:bg-blue-50"><Plus size={20} /> طلب جديد</button>
+                            {pendingTakeawayOrders.map(o => (
+                                <div key={o.id} onClick={() => { openExistingOrder(o.id); navigate('/'); }} className="min-w-[180px] bg-white p-3 rounded-xl border hover:border-blue-400 cursor-pointer shadow-sm">
+                                    <div className="flex justify-between mb-2"><span className="font-bold">#{o.orderNumber}</span><span className="text-xs bg-gray-100 px-1 rounded">{new Date(o.createdAt).toLocaleTimeString('ar-SA', {hour:'2-digit', minute:'2-digit'})}</span></div>
+                                    <div className="font-bold text-lg text-blue-600">{o.total.toFixed(2)}</div>
+                                    <div className="text-right mt-2 text-xs text-gray-400 flex justify-end gap-1">فتح <ArrowRight size={12} /></div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        const Reports = () => {
+            const { orders } = useStore();
+            const reportRef = useRef(null);
+            const [filterType, setFilterType] = useState('today');
+            const [viewMode, setViewMode] = useState('variants');
+            const [isGeneratingImage, setIsGeneratingImage] = useState(false);
+            const [customStart, setCustomStart] = useState('');
+            const [customEnd, setCustomEnd] = useState('');
+
+            const filteredOrders = useMemo(() => {
+                const now = new Date(); let start = new Date(), end = new Date();
+                if (filterType === 'today') { start.setHours(0,0,0,0); end.setHours(23,59,59,999); }
+                else if (filterType === 'week') { start.setDate(now.getDate()-6); start.setHours(0,0,0,0); end = now; }
+                else if (filterType === 'month') { start = new Date(now.getFullYear(), now.getMonth(), 1); end = now; }
+                else if (filterType === 'custom' && customStart && customEnd) { start = new Date(customStart); end = new Date(customEnd); end.setHours(23,59,59); }
+                return orders.filter(o => o.status === 'completed' && new Date(o.createdAt) >= start && new Date(o.createdAt) <= end);
+            }, [orders, filterType, customStart, customEnd]);
+
+            const stats = useMemo(() => {
+                const s = {};
+                filteredOrders.forEach(o => o.items.forEach(i => {
+                    const k = viewMode === 'general' ? i.productId : `${i.productId}-${i.variantId}`;
+                    if (!s[k]) s[k] = { name: i.productName, variant: viewMode === 'general' ? 'الكل' : i.variantName, qty: 0, revenue: 0, cost: 0, profit: 0 };
+                    s[k].qty += i.quantity; s[k].revenue += i.price * i.quantity; s[k].cost += i.cost * i.quantity; s[k].profit += (i.price - i.cost) * i.quantity;
+                }));
+                return Object.values(s).sort((a,b) => b.revenue - a.revenue);
+            }, [filteredOrders, viewMode]);
+
+            const handleShare = async () => {
+                if (!reportRef.current) return;
+                setIsGeneratingImage(true);
+                try {
+                    const canvas = await html2canvas(reportRef.current, { scale: 2, backgroundColor: '#ffffff' });
+                    const link = document.createElement('a'); link.href = canvas.toDataURL("image/png");
+                    link.download = `report_${Date.now()}.png`; link.click();
+                    setTimeout(() => { window.open(`https://wa.me/9647735311855?text=${encodeURIComponent('مرفق تقرير المبيعات')}`, '_blank'); setIsGeneratingImage(false); }, 1000);
+                } catch (e) { alert('Error'); setIsGeneratingImage(false); }
+            };
+
+            return (
+                <div className="h-full flex flex-col pb-20 md:pb-0">
+                    <div className="flex flex-col gap-4 mb-4">
+                        <div className="flex justify-between items-center"><h2 className="text-xl font-bold flex items-center gap-2"><TrendingUp className="text-primary"/> التقارير</h2></div>
+                        <div className="flex flex-wrap gap-2">
+                            {['today','week','month','custom'].map(t => <button key={t} onClick={() => setFilterType(t)} className={`px-4 py-2 rounded-lg text-xs font-bold ${filterType === t ? 'bg-slate-800 text-white' : 'bg-white'}`}>{t}</button>)}
+                            <button onClick={() => setViewMode(viewMode === 'variants' ? 'general' : 'variants')} className="px-4 py-2 bg-blue-100 text-blue-700 rounded-lg text-xs font-bold">{viewMode === 'variants' ? 'تفصيلي' : 'عام'}</button>
+                        </div>
+                        {filterType === 'custom' && <div className="flex gap-2"><input type="date" className="p-2 rounded bg-white" onChange={e => setCustomStart(e.target.value)} /><input type="date" className="p-2 rounded bg-white" onChange={e => setCustomEnd(e.target.value)} /></div>}
+                    </div>
+                    <div className="flex-1 overflow-y-auto">
+                        <div ref={reportRef} className="bg-white rounded-2xl shadow-sm border p-4">
+                            <div className="flex justify-between mb-4 border-b pb-2 items-center">
+                                <h3 className="font-bold">المبيعات {viewMode === 'general' ? '(عام)' : '(تفصيلي)'}</h3>
+                                <button onClick={handleShare} data-html2canvas-ignore className="bg-green-500 text-white px-3 py-1 rounded text-xs flex gap-1 items-center">{isGeneratingImage ? <Loader2 className="animate-spin" size={12}/> : <Share2 size={12}/>} واتساب</button>
+                            </div>
+                            {/* Mobile Cards */}
+                            <div className="md:hidden space-y-3">
+                                {stats.map((item, idx) => (
+                                    <div key={idx} className="border p-3 rounded-lg">
+                                        <div className="flex justify-between mb-2">
+                                            <span className="font-bold">{item.name} <small className="text-gray-500">({item.variant})</small></span>
+                                            <span className="bg-purple-100 text-purple-700 px-2 rounded text-xs font-bold">{item.qty}</span>
+                                        </div>
+                                        <div className="flex justify-between text-sm">
+                                            <div><span className="text-gray-400 text-xs">مبيعات</span> <div className="text-emerald-600 font-bold">{item.revenue}</div></div>
+                                            <div><span className="text-gray-400 text-xs">ربح</span> <div className="text-blue-600 font-bold">{item.profit}</div></div>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                            {/* Desktop Table */}
+                            <table className="hidden md:table w-full text-right text-sm">
+                                <thead className="bg-gray-50 text-gray-500"><tr><th className="p-2">المنتج</th><th className="p-2">الكمية</th><th className="p-2">المبيعات</th><th className="p-2">الربح</th></tr></thead>
+                                <tbody>
+                                    {stats.map((item, i) => <tr key={i} className="border-b"><td className="p-2">{item.name} ({item.variant})</td><td className="p-2">{item.qty}</td><td className="p-2 text-emerald-600">{item.revenue}</td><td className="p-2 text-blue-600">{item.profit}</td></tr>)}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        const Finance = () => {
+            const { expenses, addExpense, employees, addEmployee, workLogs, addWorkLog, orders } = useStore();
+            const [tab, setTab] = useState('employees');
+            const [withdrawModal, setWithdrawModal] = useState(false);
+            const [withdrawAmount, setWithdrawAmount] = useState('');
+            const [newEmp, setNewEmp] = useState({ name: '', salary: '' });
+            const [selectedEmp, setSelectedEmp] = useState(null);
+            
+            const stats = useMemo(() => {
+                const sales = orders.filter(o => o.status === 'completed' && o.paymentMethod === 'cash').reduce((a,b) => a + b.total, 0);
+                const exp = expenses.filter(e => e.category !== 'deduction').reduce((a,b) => a + b.amount, 0);
+                return { sales, exp, cash: sales - exp };
+            }, [orders, expenses]);
+
+            const handleExpense = (e) => { e.preventDefault(); const fd = new FormData(e.target); addExpense({ id: crypto.randomUUID(), description: fd.get('desc'), amount: Number(fd.get('amount')), category: 'supplies', date: new Date().toISOString() }); e.target.reset(); };
+            const handlePayroll = (type, amount) => { 
+                if(type === 'entitlement') addWorkLog({ id: crypto.randomUUID(), employeeId: selectedEmp.id, date: new Date().toISOString(), amount: Number(amount), description: 'استحقاق' }); 
+                else addExpense({ id: crypto.randomUUID(), description: type, amount: Number(amount), category: type === 'salary' ? 'salary' : 'withdrawal', date: new Date().toISOString(), employeeId: selectedEmp.id });
+                setSelectedEmp(null);
+            };
+
+            return (
+                <div className="h-full flex flex-col pb-20">
+                     <h2 className="text-2xl font-bold mb-6 flex items-center gap-2"><Wallet className="text-primary"/> المالية</h2>
+                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                        <div className="bg-white p-4 rounded-xl border"><div>مقبوضات</div><div className="text-2xl font-bold">{stats.sales.toFixed(2)}</div></div>
+                        <div className="bg-white p-4 rounded-xl border"><div>مصروفات</div><div className="text-2xl font-bold text-red-500">{stats.exp.toFixed(2)}</div></div>
+                        <div className="bg-slate-800 text-white p-4 rounded-xl"><div>رصيد الصندوق</div><div className="text-3xl font-bold text-emerald-400">{stats.cash.toFixed(2)}</div><button onClick={() => setWithdrawModal(true)} className="mt-2 bg-emerald-500 px-3 py-1 rounded text-sm w-full">سحب</button></div>
+                     </div>
+                     <div className="flex gap-4 mb-4"><button onClick={() => setTab('employees')} className={`flex-1 py-2 rounded-lg border font-bold ${tab === 'employees' ? 'bg-slate-800 text-white' : 'bg-white'}`}>الموظفين</button><button onClick={() => setTab('expenses')} className={`flex-1 py-2 rounded-lg border font-bold ${tab === 'expenses' ? 'bg-slate-800 text-white' : 'bg-white'}`}>المصاريف</button></div>
+                     {tab === 'employees' ? (
+                        <div className="flex-1 overflow-y-auto">
+                            <div className="mb-4 flex gap-2"><input placeholder="اسم الموظف" className="p-2 border rounded" onChange={e => setNewEmp({...newEmp, name: e.target.value})}/><input placeholder="الراتب" className="p-2 border rounded w-24" onChange={e => setNewEmp({...newEmp, salary: e.target.value})}/><button onClick={() => addEmployee({ id: crypto.randomUUID(), name: newEmp.name, baseSalary: Number(newEmp.salary), salaryType: 'monthly' })} className="bg-primary text-white px-4 rounded">إضافة</button></div>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                {employees.map(e => {
+                                    const earned = workLogs.filter(w => w.employeeId === e.id).reduce((a,b) => a + b.amount, 0);
+                                    const paid = expenses.filter(x => x.employeeId === e.id).reduce((a,b) => a + b.amount, 0);
+                                    return (
+                                        <div key={e.id} className="bg-white p-4 rounded-xl border shadow-sm">
+                                            <div className="font-bold text-lg">{e.name}</div>
+                                            <div className="text-sm text-gray-500 mb-2">راتب: {e.baseSalary}</div>
+                                            <div className="text-sm flex justify-between"><span>مستحق: <span className="text-green-600">{earned}</span></span><span>مدفوع: <span className="text-red-500">{paid}</span></span></div>
+                                            <div className="font-bold border-t mt-2 pt-2">صافي: {earned - paid}</div>
+                                            <button onClick={() => setSelectedEmp(e)} className="w-full mt-2 bg-slate-800 text-white py-2 rounded">حركة مالية</button>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                     ) : (
+                        <div className="flex-1 overflow-y-auto">
+                            <form onSubmit={handleExpense} className="flex gap-2 mb-4"><input name="desc" placeholder="الوصف" className="flex-1 p-2 border rounded" required/><input name="amount" placeholder="المبلغ" type="number" className="w-24 p-2 border rounded" required/><button className="bg-red-500 text-white px-4 rounded">تسجيل</button></form>
+                            <table className="w-full text-right bg-white rounded-xl shadow-sm"><tbody className="divide-y">{expenses.slice().reverse().map(e => <tr key={e.id}><td className="p-3">{e.description}</td><td className="p-3 font-bold text-red-500">{e.amount}</td><td className="p-3 text-xs text-gray-400">{new Date(e.date).toLocaleDateString()}</td></tr>)}</tbody></table>
+                        </div>
+                     )}
+                     {selectedEmp && (
+                        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+                            <div className="bg-white p-6 rounded-xl w-full max-w-sm">
+                                <h3 className="font-bold mb-4">{selectedEmp.name}</h3>
+                                <div className="space-y-2">
+                                    <button onClick={() => handlePayroll('entitlement', selectedEmp.baseSalary)} className="w-full py-3 bg-green-100 text-green-700 font-bold rounded">تسجيل استحقاق راتب</button>
+                                    <div className="flex gap-2">
+                                        <button onClick={() => { const amt = prompt('المبلغ'); if(amt) handlePayroll('withdrawal', amt); }} className="flex-1 py-3 bg-orange-100 text-orange-700 font-bold rounded">سلفة</button>
+                                        <button onClick={() => { const amt = prompt('المبلغ'); if(amt) handlePayroll('salary', amt); }} className="flex-1 py-3 bg-blue-100 text-blue-700 font-bold rounded">تسليم راتب</button>
+                                    </div>
+                                </div>
+                                <button onClick={() => setSelectedEmp(null)} className="w-full mt-4 py-2 bg-gray-100 rounded">إغلاق</button>
+                            </div>
+                        </div>
+                     )}
+                     {withdrawModal && (
+                        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+                            <div className="bg-white p-6 rounded-xl">
+                                <h3 className="font-bold mb-4">سحب من الصندوق</h3>
+                                <input className="w-full p-2 border rounded mb-4" type="number" onChange={e => setWithdrawAmount(e.target.value)} autoFocus />
+                                <div className="flex gap-2"><button onClick={() => { addExpense({id:crypto.randomUUID(), description:'سحب', amount: Number(withdrawAmount), category:'other', date: new Date().toISOString()}); setWithdrawModal(false); }} className="flex-1 bg-primary text-white py-2 rounded">تأكيد</button><button onClick={() => setWithdrawModal(false)} className="flex-1 bg-gray-100 py-2 rounded">إلغاء</button></div>
+                            </div>
+                        </div>
+                     )}
+                </div>
+            );
+        };
+
+        const Settings = () => {
+            const { tables, updateTableCount, products, categories, addProduct, updateProduct, deleteProduct, orders, printerConfig, updatePrinterConfig } = useStore();
+            const [activeTab, setActiveTab] = useState('printer');
+            const [tableCount, setTableCount] = useState(tables.length);
+            const [saved, setSaved] = useState(false);
+            const [currentProduct, setCurrentProduct] = useState({ variants: [] });
+            const [isEditing, setIsEditing] = useState(false);
+            const [selOrder, setSelOrder] = useState(null);
+            const receiptRef = useRef(null);
+
+            const handleSave = () => { updateTableCount(tableCount); setSaved(true); setTimeout(() => setSaved(false), 2000); };
+            const handleProdSave = () => { if(products.find(p => p.id === currentProduct.id)) updateProduct(currentProduct); else addProduct(currentProduct); setIsEditing(false); };
+            const downloadReceipt = async () => { 
+                if(!receiptRef.current) return; 
+                const canvas = await html2canvas(receiptRef.current, { scale: 2, backgroundColor:'#fff' }); 
+                const a = document.createElement('a'); a.href = canvas.toDataURL("image/png"); a.download = `rec_${selOrder.orderNumber}.png`; a.click(); 
+            };
+
+            const completedOrders = orders.filter(o => o.status !== 'pending').sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+            return (
+                <div className="h-full flex flex-col pb-20 md:pb-0">
+                    <h2 className="text-xl font-bold mb-4 flex gap-2"><Settings className="text-gray-500"/> الإعدادات</h2>
+                    <div className="flex gap-2 overflow-x-auto pb-2 mb-4 scrollbar-hide">
+                         {['invoices', 'menu', 'printer', 'general'].map(t => (
+                             <button key={t} onClick={() => setActiveTab(t)} className={`px-4 py-2 rounded-lg whitespace-nowrap font-bold ${activeTab === t ? 'bg-primary text-white' : 'bg-white border'}`}>
+                                {t === 'invoices' ? 'الأرشيف' : t === 'menu' ? 'المنتجات' : t === 'printer' ? 'الطابعة' : 'عام'}
+                             </button>
+                         ))}
+                    </div>
+                    <div className="flex-1 overflow-hidden">
+                        {activeTab === 'invoices' && (
+                            <div className="h-full overflow-y-auto bg-white rounded-xl shadow-sm p-4">
+                                <div className="space-y-3">
+                                    {completedOrders.map(o => (
+                                        <div key={o.id} className="border p-3 rounded-xl flex justify-between items-center">
+                                            <div><div className="font-bold">#{o.orderNumber}</div><div className="text-xs text-gray-500">{new Date(o.createdAt).toLocaleDateString()}</div></div>
+                                            <div className="font-bold text-primary">{o.total.toFixed(2)}</div>
+                                            <button onClick={() => setSelOrder(o)} className="p-2 bg-gray-100 rounded-lg"><Eye size={18}/></button>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+                        {activeTab === 'menu' && (
+                             <div className="h-full overflow-y-auto pb-10">
+                                <button onClick={() => { setCurrentProduct({ id: crypto.randomUUID(), name: '', categoryId: categories[0].id, image: '', isActive: true, variants: [{id:crypto.randomUUID(), name:'Std', price:0, cost:0}] }); setIsEditing(true); }} className="w-full py-3 bg-primary text-white rounded-xl font-bold mb-4">+ منتج جديد</button>
+                                {isEditing ? (
+                                    <div className="bg-white p-4 rounded-xl shadow-sm">
+                                        <input className="w-full p-2 border rounded mb-2" placeholder="الاسم" value={currentProduct.name} onChange={e => setCurrentProduct({...currentProduct, name: e.target.value})} />
+                                        <div className="space-y-2 mb-4">
+                                            {currentProduct.variants.map((v, i) => (
+                                                <div key={v.id} className="flex gap-2"><input className="w-20 p-2 border rounded" placeholder="سعر" type="number" value={v.price} onChange={e => { const n = [...currentProduct.variants]; n[i].price = Number(e.target.value); setCurrentProduct({...currentProduct, variants: n}); }} /></div>
+                                            ))}
+                                        </div>
+                                        <div className="flex gap-2"><button onClick={handleProdSave} className="flex-1 bg-green-500 text-white py-2 rounded">حفظ</button><button onClick={() => setIsEditing(false)} className="flex-1 bg-gray-200 py-2 rounded">إلغاء</button></div>
+                                    </div>
+                                ) : (
+                                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                        {products.map(p => (
+                                            <div key={p.id} className="bg-white p-3 rounded-xl border relative group">
+                                                <div className="font-bold">{p.name}</div>
+                                                <div className="text-sm text-gray-500">{p.variants[0].price} د.ع</div>
+                                                <div className="absolute top-2 left-2 flex gap-1"><button onClick={() => { setCurrentProduct(p); setIsEditing(true); }} className="p-1 bg-blue-50 text-blue-600 rounded"><Edit2 size={14}/></button><button onClick={() => deleteProduct(p.id)} className="p-1 bg-red-50 text-red-600 rounded"><Trash2 size={14}/></button></div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                             </div>
+                        )}
+                        {activeTab === 'general' && (
+                            <div className="bg-white p-6 rounded-xl shadow-sm">
+                                <label className="block mb-2 font-bold">عدد الطاولات</label>
+                                <input type="number" className="w-full p-3 border rounded-xl mb-4" value={tableCount} onChange={e => setTableCount(Number(e.target.value))} />
+                                <button onClick={handleSave} className="w-full py-3 bg-primary text-white rounded-xl font-bold">{saved ? 'تم الحفظ' : 'حفظ الإعدادات'}</button>
+                            </div>
+                        )}
+                        {activeTab === 'printer' && (
+                             <div className="bg-white p-6 rounded-xl shadow-sm space-y-4">
+                                <div><label className="block font-bold mb-2">نوع الاتصال</label><div className="flex gap-2"><button onClick={() => updatePrinterConfig({...printerConfig, type:'wifi'})} className={`flex-1 py-3 rounded border ${printerConfig.type==='wifi'?'bg-blue-50 border-blue-500':''}`}>WiFi</button><button onClick={() => updatePrinterConfig({...printerConfig, type:'bluetooth'})} className={`flex-1 py-3 rounded border ${printerConfig.type==='bluetooth'?'bg-blue-50 border-blue-500':''}`}>Bluetooth</button></div></div>
+                                <div><label className="block font-bold mb-2">Target IP/Name</label><input className="w-full p-3 border rounded" value={printerConfig.target} onChange={e => updatePrinterConfig({...printerConfig, target: e.target.value})} /></div>
+                             </div>
+                        )}
+                    </div>
+                    {selOrder && (
+                        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+                            <div className="bg-white w-full max-w-sm rounded-2xl overflow-hidden">
+                                <div className="p-4 bg-gray-50 flex justify-between"><h3 className="font-bold">الفاتورة</h3><button onClick={() => setSelOrder(null)}><X size={20}/></button></div>
+                                <div className="p-6 text-center bg-white" ref={receiptRef}>
+                                    <h1 className="text-xl font-bold">كباب الديرة</h1>
+                                    <div className="border-y py-2 my-2 flex justify-between"><span>#{selOrder.orderNumber}</span><span>{new Date(selOrder.createdAt).toLocaleDateString()}</span></div>
+                                    <div className="text-right space-y-1">{selOrder.items.map((i,idx) => <div key={idx} className="flex justify-between"><span>{i.quantity}x {i.productName}</span><span>{i.price*i.quantity}</span></div>)}</div>
+                                    <div className="border-t mt-2 pt-2 flex justify-between font-bold text-xl"><span>الإجمالي</span><span>{selOrder.total.toFixed(2)}</span></div>
+                                </div>
+                                <div className="p-4 border-t flex gap-2">
+                                    <button onClick={downloadReceipt} className="flex-1 bg-green-600 text-white py-2 rounded font-bold flex items-center justify-center gap-2"><Download size={16}/> حفظ صورة</button>
+                                    <button onClick={() => { setTimeout(window.print, 100); }} className="flex-1 bg-black text-white py-2 rounded font-bold flex items-center justify-center gap-2"><Printer size={16}/> طباعة</button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            );
+        };
+
+        // --- APP ROOT ---
+        const App = () => (
+            <HashRouter>
+                <StoreProvider>
+                    <Routes>
+                        <Route path="/" element={<Layout />}>
+                            <Route index element={<POS />} />
+                            <Route path="tables" element={<Tables />} />
+                            <Route path="reports" element={<Reports />} />
+                            <Route path="finance" element={<Finance />} />
+                            <Route path="settings" element={<Settings />} />
+                            <Route path="*" element={<Navigate to="/" replace />} />
+                        </Route>
+                    </Routes>
+                </StoreProvider>
+            </HashRouter>
+        );
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
