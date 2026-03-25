@@ -1,0 +1,1840 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>كباب الديرة - نظام كاشير مطعم</title>
+  <style>
+    :root{
+      --bg:#0f172a;
+      --panel:#111827;
+      --panel-2:#1f2937;
+      --panel-3:#0b1220;
+      --text:#f8fafc;
+      --muted:#94a3b8;
+      --line:#243042;
+      --primary:#2563eb;
+      --primary-2:#3b82f6;
+      --success:#16a34a;
+      --warning:#f59e0b;
+      --danger:#dc2626;
+      --info:#06b6d4;
+      --white:#ffffff;
+      --shadow:0 12px 30px rgba(0,0,0,.25);
+      --radius:18px;
+    }
+    *{box-sizing:border-box}
+    html,body{margin:0;padding:0;background:linear-gradient(180deg,#07101f,#0f172a 40%,#111827);color:var(--text);font-family:"Segoe UI",Tahoma,Arial,sans-serif}
+    button,input,select,textarea{font:inherit}
+    button{cursor:pointer;border:none}
+    img{max-width:100%;display:block}
+    .app{min-height:100vh;display:flex;flex-direction:column}
+    .topbar{display:flex;gap:12px;align-items:center;justify-content:space-between;padding:14px 18px;background:rgba(11,18,32,.88);backdrop-filter:blur(12px);position:sticky;top:0;z-index:60;border-bottom:1px solid var(--line)}
+    .brand{display:flex;align-items:center;gap:12px}
+    .logo{width:52px;height:52px;border-radius:16px;background:linear-gradient(135deg,var(--primary),#1d4ed8);display:grid;place-items:center;font-weight:700;font-size:20px;box-shadow:var(--shadow)}
+    .brand h1{margin:0;font-size:22px}
+    .brand small,.top-stats small{color:var(--muted)}
+    .top-stats{display:flex;gap:16px;flex-wrap:wrap;align-items:center}
+    .chip{background:var(--panel);border:1px solid var(--line);padding:10px 14px;border-radius:999px;color:var(--text)}
+    .layout{display:grid;grid-template-columns:1fr;gap:18px;padding:18px;align-items:start}
+    .sidebar,.content-card,.modal-card,.drawer{background:rgba(17,24,39,.92);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow)}
+    .sidebar{padding:40px 16px;position:relative;top:0;height:auto;display:flex;flex-direction:column;justify-content:center;align-items:center;min-height:calc(100vh - 100px)}
+    .home-brand{display:grid;gap:8px;justify-items:center;text-align:center;margin-bottom:26px}
+    .home-brand h2{margin:0;font-size:42px;font-weight:900}
+    .home-brand p{margin:0;color:var(--muted);font-size:18px}
+    .nav-grid{display:flex;justify-content:center;align-items:center;gap:18px;flex-wrap:wrap}
+    .nav-btn{min-height:150px;min-width:180px;border-radius:26px;padding:24px 22px;background:linear-gradient(180deg,#172235,#0f172a);border:1px solid var(--line);color:var(--text);display:flex;flex-direction:column;justify-content:center;align-items:center;gap:14px;transition:.22s transform,.22s border-color,.22s background,.22s box-shadow;box-shadow:0 10px 24px rgba(0,0,0,.22)}
+    .nav-btn:hover,.nav-btn.active{transform:translateY(-6px) scale(1.02);border-color:var(--primary-2);background:linear-gradient(180deg,#1b2f52,#0e1b31);box-shadow:0 18px 36px rgba(37,99,235,.22)}
+    .nav-btn:active{transform:scale(.96);transition:.08s transform}
+    .nav-icon{font-size:42px}
+    .nav-label{font-size:28px;font-weight:800}
+    .sidebar-footer{display:none}
+    .outline-btn,.primary-btn,.danger-btn,.success-btn,.warning-btn,.soft-btn{padding:11px 14px;border-radius:14px;font-weight:700}
+    .primary-btn{background:linear-gradient(135deg,var(--primary),var(--primary-2));color:#fff}
+    .soft-btn{background:#162031;color:#fff;border:1px solid var(--line)}
+    .outline-btn{background:transparent;color:#fff;border:1px solid var(--line)}
+    .danger-btn{background:linear-gradient(135deg,#b91c1c,var(--danger));color:#fff}
+    .success-btn{background:linear-gradient(135deg,#15803d,var(--success));color:#fff}
+    .warning-btn{background:linear-gradient(135deg,#d97706,var(--warning));color:#fff}
+    .main{display:none;gap:18px}
+    body.section-mode .sidebar{display:none}
+    body.section-mode .main{display:grid}
+    .section-shell{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:12px}
+    .back-home-btn{padding:12px 18px;border-radius:14px;background:linear-gradient(135deg,#1e40af,#2563eb);color:#fff;font-weight:800;border:none}
+    .section{display:none}
+    .section.active{display:block}
+    .content-card{padding:16px}
+    .section-header{display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:14px}
+    .section-header h2{margin:0;font-size:24px}
+    .muted{color:var(--muted)}
+    .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+    .kpi{padding:18px;border-radius:18px;background:linear-gradient(180deg,#172235,#111827);border:1px solid var(--line)}
+    .kpi .v{font-size:28px;font-weight:800;margin-top:8px}
+    .dashboard-grid{display:grid;grid-template-columns:1.2fr .8fr;gap:18px}
+    .list{display:grid;gap:10px}
+    .list-item{display:flex;justify-content:space-between;gap:10px;padding:12px 14px;background:#0f172a;border:1px solid var(--line);border-radius:14px}
+    .pos-layout{display:grid;grid-template-columns:1.4fr .6fr;gap:16px}
+    .toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+    .toolbar input,.toolbar select,.toolbar textarea,.field,.modal-card input,.modal-card select,.modal-card textarea{width:100%;background:#0b1220;border:1px solid var(--line);color:#fff;border-radius:14px;padding:12px}
+    .category-row{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0}
+    .cat-btn{padding:10px 14px;border-radius:999px;background:#0b1220;border:1px solid var(--line);color:#fff}
+    .cat-btn.active{background:var(--primary);border-color:var(--primary)}
+    .products-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px}
+    .product-card{background:linear-gradient(180deg,#152234,#0f172a);border:1px solid var(--line);border-radius:18px;overflow:hidden;display:grid;cursor:pointer;transition:.18s transform,.18s border-color}
+    .product-card:hover{transform:translateY(-2px);border-color:var(--primary-2)}
+    .product-card img{width:100%;height:120px;object-fit:cover;background:#0b1220}
+    .product-body{padding:12px;display:grid;gap:6px}
+    .price{font-weight:800;color:#93c5fd}
+    .cart-panel{display:grid;gap:12px}
+    .cart-items{display:grid;gap:10px;max-height:300px;overflow:auto;padding-inline-end:2px}
+    .cart-item{padding:12px;border-radius:16px;background:#0b1220;border:1px solid var(--line);display:grid;gap:10px}
+    .cart-top,.row-between{display:flex;justify-content:space-between;gap:10px;align-items:center}
+    .qty-controls{display:flex;gap:6px;align-items:center}
+    .mini-btn{width:34px;height:34px;border-radius:10px;background:#162031;color:#fff;border:1px solid var(--line)}
+    .totals{display:grid;gap:8px;padding:12px;border-radius:16px;background:#0b1220;border:1px solid var(--line)}
+    .actions-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;position:sticky;top:0;z-index:5;background:linear-gradient(180deg,#0b1220,#0b1220);padding:6px;border-radius:12px}
+    .table-filters,.settings-grid,.expense-grid,.archive-filters{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px}
+    .tables-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:12px}
+    .table-card{padding:16px;border-radius:18px;border:1px solid var(--line);background:linear-gradient(180deg,#172235,#0f172a);display:grid;gap:8px}
+    .table-meta{display:grid;gap:6px;padding:8px 10px;border-radius:12px;background:#0b1220;border:1px dashed var(--line)}
+    .table-card.free{border-color:#14532d}.table-card.busy{border-color:#92400e}.table-card.reserved{border-color:#1d4ed8}.table-card.checkout{border-color:#7c2d12}
+    .pill{display:inline-block;padding:6px 10px;border-radius:999px;font-size:12px;border:1px solid var(--line);background:#111827}
+    .two-col{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+    .stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:14px}
+    .stat-box{padding:14px;border-radius:16px;background:#0b1220;border:1px solid var(--line)}
+    .stat-box strong{display:block;font-size:22px;margin-top:6px}
+    table{width:100%;border-collapse:collapse}
+    th,td{padding:12px 10px;border-bottom:1px solid var(--line);text-align:right}
+    thead th{color:#cbd5e1;background:#0b1220;position:sticky;top:0}
+    .table-wrap{overflow:auto;max-height:420px;border:1px solid var(--line);border-radius:16px}
+    .chart{height:260px;display:flex;align-items:flex-end;gap:10px;padding:14px;border-radius:16px;border:1px solid var(--line);background:#0b1220}
+    .bar{flex:1;background:linear-gradient(180deg,#60a5fa,#2563eb);border-radius:12px 12px 0 0;min-width:36px;position:relative}
+    .bar span{position:absolute;bottom:calc(100% + 6px);right:50%;transform:translateX(50%);font-size:12px;color:#cbd5e1}
+    .bar label{position:absolute;top:calc(100% + 6px);right:50%;transform:translateX(50%);font-size:12px;color:#94a3b8;white-space:nowrap}
+    .settings-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+    .settings-box,.report-box{padding:14px;border-radius:16px;background:#0b1220;border:1px solid var(--line)}
+    .field-row{display:grid;gap:8px;margin-bottom:10px}
+    .sub-actions{display:flex;gap:8px;flex-wrap:wrap}
+    .tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+    .tab-btn{padding:10px 14px;border-radius:999px;background:#0b1220;border:1px solid var(--line);color:#fff}
+    .tab-btn.active{background:var(--primary);border-color:var(--primary)}
+    .hidden{display:none!important}
+    .logic-only{display:none!important}
+    .modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;align-items:center;justify-content:center;padding:20px;z-index:100}
+    .modal-backdrop.show{display:flex}
+    .modal-card{width:min(760px,100%);padding:18px;max-height:90vh;overflow:auto}
+    .modal-title{margin:0 0 12px}
+    .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    .form-grid .full{grid-column:1/-1}
+    .drawer{padding:14px}
+    .footer-note{display:none}
+    .toast-wrap{position:fixed;bottom:20px;left:20px;display:grid;gap:10px;z-index:120}
+    .toast{padding:12px 14px;border-radius:14px;background:#0b1220;border:1px solid var(--line);box-shadow:var(--shadow)}
+    @media (max-width:1100px){
+      .layout,.pos-layout,.dashboard-grid,.two-col,.settings-grid{grid-template-columns:1fr}
+      .sidebar{position:relative;top:0;height:auto}
+      .nav-grid{grid-template-columns:repeat(4,minmax(130px,1fr))}
+      .sidebar-footer{grid-template-columns:1fr}
+      .kpis{grid-template-columns:repeat(2,1fr)}
+    }
+    @media (max-width:700px){
+      .home-brand h2{font-size:32px}
+      .home-brand p{font-size:16px}
+      .nav-grid{gap:12px}
+      .nav-btn{min-width:145px;min-height:128px;padding:18px 14px}
+      .nav-icon{font-size:34px}
+      .nav-label{font-size:22px}
+      .actions-grid,.form-grid,.kpis{grid-template-columns:1fr}
+      .topbar{padding:12px}
+      .layout{padding:12px}
+      .products-grid{grid-template-columns:repeat(2,1fr)}
+      .brand h1{font-size:18px}
+    }
+    @media print{
+      body *{visibility:hidden}
+      #print-area,#print-area *{visibility:visible}
+      #print-area{position:absolute;inset:0;background:#fff;color:#000;padding:20px}
+    }
+  </style>
+</head>
+<body>
+<div class="app">
+  <header class="topbar">
+    <div class="brand">
+      <div class="logo" id="logoText">ك</div>
+      <div>
+        <h1 id="restaurantNameTop">كباب الديرة</h1>
+        <small>نظام كاشير مطاعم احترافي</small>
+      </div>
+    </div>
+    <div class="top-stats">
+      <div class="chip">الوقت: <strong id="liveTime">--:--</strong></div>
+      <div class="chip">التاريخ: <strong id="liveDate">--/--/----</strong></div>
+      <div class="chip">المستخدم: <strong id="currentUserName">المدير</strong></div>
+      <div class="chip">الوردية: <strong id="shiftNo">1</strong></div>
+    </div>
+  </header>
+
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="home-brand">
+        <div class="logo" id="homeLogoText">ك</div>
+        <h2 id="homeRestaurantName">كباب الديرة</h2>
+        <p>الواجهة الرئيسية للنظام</p>
+      </div>
+      <div class="nav-grid" id="mainNav">
+        <button class="nav-btn active" data-section="dashboard"><div class="nav-icon">🏠</div><div class="nav-label">الرئيسية</div></button>
+        <button class="nav-btn" data-section="cashier"><div class="nav-icon">🧾</div><div class="nav-label">الكاشير</div></button>
+        <button class="nav-btn" data-section="tables"><div class="nav-icon">🍽️</div><div class="nav-label">الطاولات</div></button>
+        <button class="nav-btn" data-section="reports"><div class="nav-icon">📊</div><div class="nav-label">التقارير</div></button>
+        <button class="nav-btn" data-section="settings"><div class="nav-icon">⚙️</div><div class="nav-label">الإعدادات</div></button>
+        <button class="nav-btn" data-section="finance"><div class="nav-icon">💰</div><div class="nav-label">المصاريف والرواتب</div></button>
+        <button class="nav-btn" data-section="archive"><div class="nav-icon">🗂️</div><div class="nav-label">أرشفة الفواتير</div></button>
+      </div>
+      <div class="sidebar-footer">
+        <button class="primary-btn" id="backupBtn">نسخة احتياطية JSON</button>
+        <button class="outline-btn" id="restoreBtn">استيراد نسخة احتياطية</button>
+        <input id="restoreInput" type="file" accept="application/json" class="hidden" />
+        <button class="soft-btn" id="quickAddDemo">تحميل بيانات تجريبية</button>
+      </div>
+      <div class="footer-note">جميع البيانات محفوظة محليًا عبر LocalStorage وقابلة للتطوير لاحقًا إلى نظام شبكة.</div>
+    </aside>
+
+    <main class="main">
+      <div class="section-shell">
+        <button class="back-home-btn" id="backHomeBtn">← العودة إلى الواجهة الرئيسية</button>
+        <div class="muted" id="sectionModeLabel">أنت داخل القسم المحدد</div>
+      </div>
+      <section class="section active" id="section-dashboard">
+        <div class="content-card">
+          <div class="section-header">
+            <div>
+              <h2>لوحة التحكم الرئيسية</h2>
+              <div class="muted">نظرة سريعة على المبيعات والطاولات والمصروفات</div>
+            </div>
+          </div>
+          <div class="kpis" id="dashboardKpis"></div>
+        </div>
+        <div class="dashboard-grid">
+          <div class="content-card">
+            <div class="section-header"><h2>آخر الفواتير</h2></div>
+            <div class="list" id="latestInvoices"></div>
+          </div>
+          <div class="content-card">
+            <div class="section-header"><h2>ملخص التشغيل</h2></div>
+            <div class="list" id="summaryBoxes"></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="section-cashier">
+        <div class="content-card">
+          <div class="section-header">
+            <div>
+              <h2>قسم الكاشير</h2>
+              <div class="muted">إدارة الطلب الحالي وطباعة الفواتير وتعليقها وتحويلها إلى الطاولات والتوصيل</div>
+            </div>
+          </div>
+          <div class="logic-only">
+            <input id="productSearch" placeholder="بحث سريع عن منتج..." />
+            <select id="orderTypeSelect">
+              <option value="صالة">صالة</option>
+              <option value="سفري">سفري</option>
+              <option value="توصيل">توصيل</option>
+            </select>
+            <select id="paymentMethodSelect">
+              <option value="نقدي">نقدي</option>
+              <option value="بطاقة">بطاقة</option>
+              <option value="آجل">آجل</option>
+              <option value="مختلط">مختلط</option>
+            </select>
+          </div>
+
+          <div class="pos-layout">
+            <div class="drawer">
+              <div class="category-row" id="categoryRow"></div>
+              <div class="products-grid" id="productsGrid"></div>
+            </div>
+
+            <div class="cart-panel">
+              <div class="actions-grid">
+                <button class="success-btn" id="completeSaleBtn">إتمام البيع</button>
+                <button class="warning-btn" id="holdSaleBtn">تعليق الطلب</button>
+                <button class="outline-btn" id="heldOrdersBtn">الطلبات المعلقة</button>
+                <button class="outline-btn" id="printInvoiceBtn">طباعة الفاتورة</button>
+                <button class="outline-btn" id="printKitchenBtn">طباعة المطبخ</button>
+                <button class="danger-btn" id="clearCartBtn">تفريغ الطلب</button>
+                <button class="soft-btn" id="assignTableBtn">تحويل إلى طاولة</button>
+                <button class="soft-btn" id="splitBillBtn">تقسيم الفاتورة</button>
+                <button class="primary-btn" id="goTablesBtn">قسم الطاولات</button>
+                <button class="primary-btn" id="goDeliveryBtn">طلبات التوصيل</button>
+              </div>
+
+              <div class="drawer">
+                <div class="row-between">
+                  <strong>الفاتورة الحالية</strong>
+                  <span class="pill">رقم <span id="invoiceNoView">1</span></span>
+                </div>
+                <div class="toolbar" style="margin-top:10px">
+                  <input id="customerName" placeholder="اسم الزبون" />
+                  <input id="customerPhone" placeholder="رقم الهاتف" />
+                </div>
+                <div class="cart-items" id="cartItems"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="section-tables">
+        <div class="content-card">
+          <div class="section-header">
+            <div>
+              <h2>قسم الطاولات</h2>
+              <div class="muted">إدارة الطاولات والمناطق وفتح الطلبات ونقلها ودمجها</div>
+            </div>
+            <div class="table-filters">
+              <select id="tableZoneFilter"></select>
+              <button class="primary-btn" id="addTableBtn">إضافة طاولة</button>
+            </div>
+          </div>
+          <div class="tables-grid" id="tablesGrid"></div>
+        </div>
+      </section>
+
+      <section class="section" id="section-reports">
+        <div class="content-card">
+          <div class="section-header">
+            <div>
+              <h2>قسم التقارير</h2>
+              <div class="muted">تقارير يومية وأسبوعية وشهرية وسنوية وتقارير حسب المنتج والفئة وطريقة الدفع</div>
+            </div>
+            <div class="archive-filters">
+              <select id="reportRange">
+                <option value="today">اليوم</option>
+                <option value="yesterday">أمس</option>
+                <option value="week">أسبوعي</option>
+                <option value="month">شهري</option>
+                <option value="year">سنوي</option>
+                <option value="all">كل الفترات</option>
+              </select>
+              <button class="primary-btn" id="refreshReportsBtn">تحديث</button>
+              <button class="outline-btn" id="exportExcelBtn">تصدير Excel</button>
+              <button class="outline-btn" id="printReportsBtn">طباعة</button>
+            </div>
+          </div>
+          <div class="kpis" id="reportKpis"></div>
+          <div class="two-col" style="margin-top:16px">
+            <div class="report-box">
+              <h3>أعلى الفئات مبيعًا</h3>
+              <div class="table-wrap"><table><thead><tr><th>الفئة</th><th>الكمية</th><th>المبيعات</th></tr></thead><tbody id="categoryReportBody"></tbody></table></div>
+            </div>
+            <div class="report-box">
+              <h3>أعلى المنتجات مبيعًا</h3>
+              <div class="table-wrap"><table><thead><tr><th>المنتج</th><th>الكمية</th><th>المبيعات</th></tr></thead><tbody id="productReportBody"></tbody></table></div>
+            </div>
+          </div>
+          <div class="two-col" style="margin-top:16px">
+            <div class="report-box">
+              <h3>طرق الدفع</h3>
+              <div class="table-wrap"><table><thead><tr><th>الطريقة</th><th>عدد الفواتير</th><th>الإجمالي</th></tr></thead><tbody id="paymentReportBody"></tbody></table></div>
+            </div>
+            <div class="report-box">
+              <h3>رسم بياني للمبيعات</h3>
+              <div class="chart" id="salesChart"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="section-settings">
+        <div class="content-card">
+          <div class="section-header">
+            <div>
+              <h2>قسم الإعدادات</h2>
+              <div class="muted">إعدادات المطعم والطابعات والمنتجات والفئات والمستخدمين والصلاحيات</div>
+            </div>
+          </div>
+          <div class="tabs" id="settingsTabs">
+            <button class="tab-btn active" data-tab="general">عام</button>
+            <button class="tab-btn" data-tab="categories">الفئات</button>
+            <button class="tab-btn" data-tab="products">المنتجات</button>
+            <button class="tab-btn" data-tab="users">المستخدمون</button>
+            <button class="tab-btn" data-tab="printing">الطباعة</button>
+          </div>
+          <div id="settings-general" class="settings-panel">
+            <div class="settings-grid">
+              <div class="settings-box">
+                <div class="field-row"><label>اسم المطعم</label><input id="settingRestaurantName" /></div>
+                <div class="field-row"><label>الهاتف</label><input id="settingPhone" /></div>
+                <div class="field-row"><label>العنوان</label><input id="settingAddress" /></div>
+                <div class="field-row"><label>رسالة الفاتورة</label><textarea id="settingReceiptMessage"></textarea></div>
+                <button class="primary-btn" id="saveGeneralSettings">حفظ الإعدادات العامة</button>
+              </div>
+              <div class="settings-box">
+                <div class="field-row"><label>العملة</label><input id="settingCurrency" /></div>
+                <div class="field-row"><label>الضريبة %</label><input id="settingTax" type="number" min="0" /></div>
+                <div class="field-row"><label>رسوم الخدمة الافتراضية</label><input id="settingService" type="number" min="0" /></div>
+                <div class="field-row"><label>الشعار (نص مختصر)</label><input id="settingLogoText" maxlength="2" /></div>
+                <button class="outline-btn" id="applyBrandingBtn">تطبيق الهوية</button>
+              </div>
+              <div class="settings-box">
+                <div class="field-row"><label>اسم المستخدم الحالي</label><select id="settingCurrentUser"></select></div>
+                <div class="field-row"><label>رقم الوردية</label><input id="settingShiftNo" type="number" min="1" /></div>
+                <div class="field-row"><label>طريقة عرض المنتجات</label><select id="settingProductView"><option value="grid">شبكي</option><option value="list">قائمة</option></select></div>
+                <div class="field-row"><label>السماح بتكرار المنتج كسطر مستقل</label><select id="settingSeparateLines"><option value="true">نعم</option><option value="false">لا</option></select></div>
+                <button class="primary-btn" id="saveUiSettings">حفظ واجهة التشغيل</button>
+              </div>
+            </div>
+          </div>
+          <div id="settings-categories" class="settings-panel hidden">
+            <div class="section-header"><h3>الفئات</h3><button class="primary-btn" id="addCategoryBtn">إضافة فئة</button></div>
+            <div class="table-wrap"><table><thead><tr><th>الاسم</th><th>اللون</th><th>إجراءات</th></tr></thead><tbody id="categoriesTableBody"></tbody></table></div>
+          </div>
+          <div id="settings-products" class="settings-panel hidden">
+            <div class="section-header"><h3>المنتجات</h3><button class="primary-btn" id="addProductBtn">إضافة منتج</button></div>
+            <div class="table-wrap"><table><thead><tr><th>الاسم</th><th>الفئة</th><th>سعر البيع</th><th>الكلفة</th><th>متوفر</th><th>إجراءات</th></tr></thead><tbody id="productsTableBody"></tbody></table></div>
+          </div>
+          <div id="settings-users" class="settings-panel hidden">
+            <div class="section-header"><h3>المستخدمون والصلاحيات</h3><button class="primary-btn" id="addUserBtn">إضافة مستخدم</button></div>
+            <div class="table-wrap"><table><thead><tr><th>الاسم</th><th>الدور</th><th>الصلاحيات</th><th>إجراءات</th></tr></thead><tbody id="usersTableBody"></tbody></table></div>
+          </div>
+          <div id="settings-printing" class="settings-panel hidden">
+            <div class="settings-grid">
+              <div class="settings-box">
+                <div class="field-row"><label>نوع الطابعة</label><select id="printerType"><option>متصفح / نظام</option><option>بلوتوث</option><option>شبكية</option></select></div>
+                <div class="field-row"><label>طابعة الزبون</label><input id="customerPrinter" placeholder="اسم الطابعة" /></div>
+                <div class="field-row"><label>طابعة المطبخ</label><input id="kitchenPrinter" placeholder="اسم الطابعة" /></div>
+                <div class="field-row"><label>مقاس الورق</label><select id="paperSize"><option value="58">58mm</option><option value="80">80mm</option></select></div>
+                <div class="sub-actions">
+                  <button class="primary-btn" id="savePrintingBtn">حفظ إعدادات الطباعة</button>
+                  <button class="outline-btn" id="testPrintingBtn">اختبار الطباعة</button>
+                  <button class="success-btn" id="connectBluetoothBtn">ربط طابعة بلوتوث</button>
+                
+                </div>
+              </div>
+              <div class="settings-box" style="grid-column:span 2">
+                <h3>معاينة الفاتورة</h3>
+                <div id="receiptPreview" class="drawer"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="section-finance">
+        <div class="content-card">
+          <div class="section-header">
+            <div>
+              <h2>المصاريف والرواتب</h2>
+              <div class="muted">إدارة مصروفات المطعم ورواتب الموظفين وتأثيرها على الربح</div>
+            </div>
+          </div>
+          <div class="tabs" id="financeTabs">
+            <button class="tab-btn active" data-tab="expenses">المصاريف</button>
+            <button class="tab-btn" data-tab="employees">الموظفون والرواتب</button>
+          </div>
+          <div id="finance-expenses" class="finance-panel">
+            <div class="expense-grid">
+              <button class="primary-btn" id="addExpenseBtn">إضافة مصروف</button>
+            </div>
+            <div class="table-wrap"><table><thead><tr><th>التاريخ</th><th>التصنيف</th><th>القيمة</th><th>الوصف</th><th>الموظف</th><th>إجراءات</th></tr></thead><tbody id="expensesBody"></tbody></table></div>
+          </div>
+          <div id="finance-employees" class="finance-panel hidden">
+            <div class="expense-grid">
+              <button class="primary-btn" id="addEmployeeBtn">إضافة موظف</button>
+              <button class="outline-btn" id="addSalaryBtn">تسجيل راتب</button>
+              <button class="soft-btn" id="addBulkSalaryBtn">تسجيل رواتب دفعة واحدة</button>
+            </div>
+            <div class="stat-grid" id="employeeDueStats"></div>
+            <div class="two-col">
+              <div class="table-wrap"><table><thead><tr><th>الموظف</th><th>الراتب الأساسي</th><th>دورية الاستحقاق</th><th>المستحق الآن</th><th>إجراءات</th></tr></thead><tbody id="employeesBody"></tbody></table></div>
+              <div class="table-wrap"><table><thead><tr><th>الشهر</th><th>الموظف</th><th>الصافي</th><th>الحالة</th><th>إجراءات</th></tr></thead><tbody id="salariesBody"></tbody></table></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="section-archive">
+        <div class="content-card">
+          <div class="section-header">
+            <div>
+              <h2>أرشفة الفواتير</h2>
+              <div class="muted">إدارة الفواتير المباعة والمعلقة والملغاة والمسترجعة والمعدلة</div>
+            </div>
+            <div class="archive-filters">
+              <input id="archiveSearch" placeholder="بحث برقم الفاتورة أو الزبون أو الكاشير" />
+              <select id="archiveStatusFilter">
+                <option value="all">كل الحالات</option>
+                <option value="مباعة">مباعة</option>
+                <option value="معلقة">معلقة</option>
+                <option value="ملغاة">ملغاة</option>
+                <option value="مسترجعة">مسترجعة</option>
+                <option value="معدلة">معدلة</option>
+              </select>
+            </div>
+          </div>
+          <div class="table-wrap"><table><thead><tr><th>رقم</th><th>التاريخ</th><th>الزبون</th><th>النوع</th><th>الدفع</th><th>الإجمالي</th><th>الحالة</th><th>الكاشير</th><th>إجراءات</th></tr></thead><tbody id="archiveBody"></tbody></table></div>
+        </div>
+      </section>
+    </main>
+  </div>
+</div>
+
+<div class="modal-backdrop" id="modalBackdrop">
+  <div class="modal-card">
+    <div class="row-between">
+      <h3 class="modal-title" id="modalTitle">نافذة</h3>
+      <button class="mini-btn" id="closeModalBtn">✕</button>
+    </div>
+    <div id="modalContent"></div>
+  </div>
+</div>
+
+<div id="print-area" class="hidden"></div>
+<div class="toast-wrap" id="toastWrap"></div>
+
+<script>
+(function(){
+  'use strict';
+
+  const STORAGE_KEY = 'kabab_aldeera_pos_v3';
+  const $ = (s,p=document)=>p.querySelector(s);
+  const $$ = (s,p=document)=>Array.from(p.querySelectorAll(s));
+  const uid = ()=> Date.now().toString(36) + Math.random().toString(36).slice(2,7);
+  const todayISO = ()=> new Date().toISOString().slice(0,10);
+  const nowISO = ()=> new Date().toISOString();
+  const formatDateTime = iso => new Date(iso).toLocaleString('ar-IQ');
+  const formatMoney = n => `${Number(n||0).toLocaleString('ar-IQ')} ${state.settings.currency}`;
+  const deepClone = obj => JSON.parse(JSON.stringify(obj));
+
+  const defaultData = {
+    settings:{
+      restaurantName:'كباب الديرة', phone:'', address:'', receiptMessage:'شكرًا لزيارتكم', currency:'د.ع', taxPercent:0, defaultService:0, logoText:'ك',
+      productView:'grid', separateLines:true, currentUserId:'u1', shiftNo:1,
+      printerType:'متصفح / نظام', customerPrinter:'', kitchenPrinter:'', paperSize:'80'
+    },
+    users:[
+      {id:'u1',name:'المدير',role:'مدير',permissions:['all']},
+      {id:'u2',name:'كاشير 1',role:'كاشير',permissions:['sale','hold','print']}
+    ],
+    categories:[
+      {id:'c1',name:'المشويات',color:'#2563eb'},
+      {id:'c2',name:'المشروبات',color:'#06b6d4'},
+      {id:'c3',name:'المقبلات',color:'#16a34a'}
+    ],
+    products:[
+      {id:'p1',name:'كباب عراقي',categoryId:'c1',price:6000,cost:3500,image:'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?q=80&w=1200&auto=format&fit=crop',available:true,color:'#2563eb'},
+      {id:'p2',name:'تكة دجاج',categoryId:'c1',price:7000,cost:4300,image:'https://images.unsplash.com/photo-1529193591184-b1d58069ecdd?q=80&w=1200&auto=format&fit=crop',available:true,color:'#2563eb'},
+      {id:'p3',name:'بيبسي 250',categoryId:'c2',price:1000,cost:600,image:'https://images.unsplash.com/photo-1629203851122-3726ecdf080e?q=80&w=1200&auto=format&fit=crop',available:true,color:'#06b6d4'},
+      {id:'p4',name:'حمص بطحينة',categoryId:'c3',price:2000,cost:900,image:'https://images.unsplash.com/photo-1541519227354-08fa5d50c44d?q=80&w=1200&auto=format&fit=crop',available:true,color:'#16a34a'}
+    ],
+    tables:[
+      {id:'t1',name:'طاولة 1',zone:'داخلي',status:'متاحة',openedAt:null,invoiceId:null,guests:0,currentOrder:null},
+      {id:'t2',name:'طاولة 2',zone:'داخلي',status:'مشغولة',openedAt:nowISO(),invoiceId:null,guests:3,currentOrder:null},
+      {id:'t3',name:'طاولة 3',zone:'عوائل',status:'محجوزة',openedAt:null,invoiceId:null,guests:0,currentOrder:null},
+      {id:'t4',name:'طاولة 4',zone:'VIP',status:'بانتظار الحساب',openedAt:nowISO(),invoiceId:null,guests:4,currentOrder:null}
+    ],
+    invoices:[],
+    heldOrders:[],
+    expenses:[],
+    employees:[{id:'e1',name:'موظف 1',phone:'',salaryBase:700000,payIntervalMonths:1,startDate:todayISO(),notes:''}],
+    salaries:[],
+    counters:{invoice:1}
+  };
+
+  let state = loadState();
+  let currentSection = 'dashboard';
+  let currentCategory = 'all';
+  let currentCart = createEmptyCart();
+
+  function loadState(){
+    try{
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if(!raw) return deepMerge(defaultData, {});
+      return deepMerge(defaultData, JSON.parse(raw));
+    }catch(e){
+      console.error(e);
+      return deepMerge(defaultData, {});
+    }
+  }
+  function deepMerge(base, extra){
+    const out = deepClone(base);
+    for(const key in extra){
+      if(extra[key] && typeof extra[key] === 'object' && !Array.isArray(extra[key]) && out[key]) out[key] = deepMerge(out[key], extra[key]);
+      else out[key] = extra[key];
+    }
+    return out;
+  }
+  function saveState(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
+  function syncCurrentTableOrder(){
+    if(!currentCart || !currentCart.tableId) return;
+    const table = state.tables.find(t=>t.id===currentCart.tableId);
+    if(!table) return;
+    table.currentOrder = deepClone(currentCart);
+    table.status = currentCart.items.length ? (table.status==='محجوزة' ? 'محجوزة' : 'مشغولة') : (table.status==='محجوزة' ? 'محجوزة' : 'متاحة');
+    if(!table.openedAt && currentCart.items.length) table.openedAt = nowISO();
+    if(!currentCart.items.length && table.status==='متاحة') table.openedAt = null;
+  }
+  function persistWorkingTableBeforeSwitch(){
+    if(!currentCart || !currentCart.tableId) return;
+    const table = state.tables.find(t=>t.id===currentCart.tableId);
+    if(!table) return;
+    table.currentOrder = deepClone(currentCart);
+    table.status = currentCart.items.length ? (table.status==='محجوزة' ? 'محجوزة' : 'مشغولة') : (table.status==='محجوزة' ? 'محجوزة' : 'متاحة');
+    table.openedAt = currentCart.items.length ? (table.openedAt || nowISO()) : null;
+  }
+  function createEmptyCart(){
+    return {customerName:'',customerPhone:'',type:'صالة',paymentMethod:'نقدي',discount:0,service:state.settings.defaultService||0,received:0,items:[],tableId:null};
+  }
+  function getCurrentUser(){ return state.users.find(u=>u.id===state.settings.currentUserId) || state.users[0]; }
+  function getCategoryName(id){ return (state.categories.find(c=>c.id===id)||{}).name || '-'; }
+  function getProduct(id){ return state.products.find(p=>p.id===id); }
+  function calcCartTotals(cart=currentCart){
+    const subtotal = cart.items.reduce((a,i)=>a + (Number(i.price)*Number(i.qty)), 0);
+    const discount = Number(cart.discount||0);
+    const service = Number(cart.service||0);
+    const tax = Math.max(0, (subtotal - discount + service) * (Number(state.settings.taxPercent||0)/100));
+    const total = Math.max(0, subtotal - discount + service + tax);
+    const received = Number(cart.received||0);
+    const change = Math.max(0, received - total);
+    return {subtotal, discount, service, tax, total, received, change};
+  }
+  function nextInvoiceNumber(){ return state.counters.invoice; }
+  function commitInvoiceNumber(){ state.counters.invoice += 1; }
+  function showToast(msg){
+    const wrap = $('#toastWrap');
+    const el = document.createElement('div');
+    el.className='toast';
+    el.textContent = msg;
+    wrap.appendChild(el);
+    setTimeout(()=> el.remove(), 2600);
+  }
+
+  function init(){
+    bindEvents();
+    tickClock(); setInterval(tickClock, 1000);
+    renderAll();
+    goHome();
+  }
+  function tickClock(){
+    const d = new Date();
+    $('#liveTime').textContent = d.toLocaleTimeString('ar-IQ');
+    $('#liveDate').textContent = d.toLocaleDateString('ar-IQ');
+  }
+  function bindEvents(){
+    $$('#mainNav .nav-btn').forEach(btn=>btn.addEventListener('click', ()=>switchSection(btn.dataset.section)));
+    $('#backHomeBtn').addEventListener('click', goHome);
+    $('#productSearch').addEventListener('input', renderProducts);
+    
+    $('#customerName').addEventListener('input', e=> currentCart.customerName=e.target.value);
+    $('#customerPhone').addEventListener('input', e=> currentCart.customerPhone=e.target.value);
+    $('#orderTypeSelect').addEventListener('change', e=> currentCart.type=e.target.value);
+    $('#paymentMethodSelect').addEventListener('change', e=> currentCart.paymentMethod=e.target.value);
+    if($('#clearCartBtn')) $('#clearCartBtn').addEventListener('click', clearCart);
+    if($('#completeSaleBtn')) $('#completeSaleBtn').addEventListener('click', completeSale);
+    if($('#holdSaleBtn')) $('#holdSaleBtn').addEventListener('click', holdCurrentOrder);
+    if($('#heldOrdersBtn')) $('#heldOrdersBtn').addEventListener('click', openHeldOrdersModal);
+    if($('#printInvoiceBtn')) $('#printInvoiceBtn').addEventListener('click', ()=>printInvoicePreview(makeInvoiceDraft('معاينة')));
+    if($('#printKitchenBtn')) $('#printKitchenBtn').addEventListener('click', ()=>printKitchenTicket());
+    if($('#assignTableBtn')) $('#assignTableBtn').addEventListener('click', openAssignTableModal);
+    if($('#splitBillBtn')) $('#splitBillBtn').addEventListener('click', splitBillDemo);
+    if($('#goTablesBtn')) $('#goTablesBtn').addEventListener('click', ()=>switchSection('tables'));
+    if($('#goDeliveryBtn')) $('#goDeliveryBtn').addEventListener('click', openDeliveryOrdersMode);
+    $('#tableZoneFilter').addEventListener('change', renderTables);
+    $('#addTableBtn').addEventListener('click', ()=>openTableModal());
+    $('#refreshReportsBtn').addEventListener('click', renderReports);
+    $('#exportExcelBtn').addEventListener('click', exportCsvReport);
+    $('#printReportsBtn').addEventListener('click', window.print);
+    $('#archiveSearch').addEventListener('input', renderArchive);
+    $('#archiveStatusFilter').addEventListener('change', renderArchive);
+    $('#closeModalBtn').addEventListener('click', closeModal);
+    $('#modalBackdrop').addEventListener('click', e=>{ if(e.target.id==='modalBackdrop') closeModal(); });
+    if($('#backupBtn')) $('#backupBtn').addEventListener('click', exportBackup);
+    if($('#restoreBtn')) $('#restoreBtn').addEventListener('click', ()=>$('#restoreInput')?.click());
+    if($('#restoreInput')) $('#restoreInput').addEventListener('change', importBackup);
+    if($('#quickAddDemo')) $('#quickAddDemo').addEventListener('click', loadDemoSales);
+    bindSettingsEvents();
+    bindFinanceEvents();
+  }
+  function bindSettingsEvents(){
+    $$('#settingsTabs .tab-btn').forEach(btn=>btn.addEventListener('click', ()=>switchTab('settings', btn.dataset.tab)));
+    $('#saveGeneralSettings').addEventListener('click', saveGeneralSettings);
+    $('#applyBrandingBtn').addEventListener('click', applyBranding);
+    $('#saveUiSettings').addEventListener('click', saveUiSettings);
+    $('#addCategoryBtn').addEventListener('click', ()=>openCategoryModal());
+    $('#addProductBtn').addEventListener('click', ()=>openProductModal());
+    $('#addUserBtn').addEventListener('click', ()=>openUserModal());
+    $('#savePrintingBtn').addEventListener('click', savePrintingSettings);
+    $('#testPrintingBtn').addEventListener('click', ()=>printInvoicePreview(makeInvoiceDraft('اختبار طباعة')));
+
+    if($('#connectBluetoothBtn')){
+      $('#connectBluetoothBtn').addEventListener('click', connectBluetoothPrinter);
+    }
+  }
+  function bindFinanceEvents(){
+    $$('#financeTabs .tab-btn').forEach(btn=>btn.addEventListener('click', ()=>switchTab('finance', btn.dataset.tab)));
+    $('#addExpenseBtn').addEventListener('click', ()=>openExpenseModal());
+    $('#addEmployeeBtn').addEventListener('click', ()=>openEmployeeModal());
+    $('#addSalaryBtn').addEventListener('click', ()=>openSalaryModal());
+    $('#addBulkSalaryBtn').addEventListener('click', ()=>openBulkSalaryModal());
+  }
+  function switchSection(section){
+    currentSection = section;
+    $$('#mainNav .nav-btn').forEach(b=>b.classList.toggle('active', b.dataset.section===section));
+    if(section==='dashboard'){
+      goHome();
+      return;
+    }
+    document.body.classList.add('section-mode');
+    $('.main').style.display = 'grid';
+    $('#sectionModeLabel').textContent = `أنت داخل قسم ${$$('#mainNav .nav-btn').find(b=>b.dataset.section===section)?.innerText.trim() || ''}`;
+    $$('.section').forEach(s=>s.classList.toggle('active', s.id===`section-${section}`));
+    if(section==='reports') renderReports();
+    if(section==='archive') renderArchive();
+    if(section==='tables') renderTables();
+    if(section==='cashier') renderCart();
+    requestAnimationFrame(()=>window.scrollTo({top:0, behavior:'instant'}));
+  }
+  function goHome(){
+    currentSection = 'dashboard';
+    document.body.classList.remove('section-mode');
+    $('.main').style.display = 'none';
+    $('#sectionModeLabel').textContent = 'اختر القسم المطلوب من الواجهة الرئيسية';
+    $$('#mainNav .nav-btn').forEach(b=>b.classList.toggle('active', b.dataset.section==='dashboard'));
+    $$('.section').forEach(s=>s.classList.remove('active'));
+    $('#section-dashboard').classList.add('active');
+    requestAnimationFrame(()=>window.scrollTo({top:0, behavior:'instant'}));
+  }
+  function switchTab(scope, tab){
+    $(`#${scope}Tabs`) && $$(`#${scope}Tabs .tab-btn`).forEach(b=>b.classList.toggle('active', b.dataset.tab===tab));
+    const panelClass = scope==='settings' ? '.settings-panel' : '.finance-panel';
+    $$(panelClass).forEach(p=>p.classList.add('hidden'));
+    $(`#${scope}-${tab}`).classList.remove('hidden');
+  }
+
+  function renderAll(){
+    renderBrand();
+    renderDashboard();
+    renderCategories();
+    renderProducts();
+    renderCart();
+    renderTables();
+    renderSettings();
+    renderFinance();
+    renderArchive();
+    renderReports();
+  }
+  function renderBrand(){
+    $('#restaurantNameTop').textContent = state.settings.restaurantName;
+    $('#homeRestaurantName').textContent = state.settings.restaurantName;
+    $('#logoText').textContent = state.settings.logoText || 'ك';
+    $('#homeLogoText').textContent = state.settings.logoText || 'ك';
+    $('#currentUserName').textContent = getCurrentUser().name;
+    $('#shiftNo').textContent = state.settings.shiftNo;
+    $('#invoiceNoView').textContent = nextInvoiceNumber();
+  }
+  function renderDashboard(){
+    const sold = state.invoices.filter(i=>i.status==='مباعة');
+    const totals = sold.reduce((a,i)=>a + Number(i.totals.total||0), 0);
+    const expenses = state.expenses.reduce((a,i)=>a + Number(i.amount||0), 0);
+    const salaryPaid = state.salaries.filter(s=>s.status==='مدفوع').reduce((a,s)=>a + Number(s.net||0), 0);
+    const busyTables = state.tables.filter(t=>t.status!=='متاحة').length;
+    const kpis = [
+      ['مبيعات اليوم', formatMoney(sumInvoicesByRange('today'))],
+      ['عدد الفواتير', sold.length.toLocaleString('ar-IQ')],
+      ['المصاريف', formatMoney(expenses)],
+      ['صافي بعد المصاريف', formatMoney(totals - expenses - salaryPaid)]
+    ];
+    $('#dashboardKpis').innerHTML = kpis.map(([t,v])=>`<div class="kpi"><div class="muted">${t}</div><div class="v">${v}</div></div>`).join('');
+
+    const latest = [...state.invoices].slice(-6).reverse();
+    $('#latestInvoices').innerHTML = latest.length ? latest.map(i=>`<div class="list-item"><div><strong>فاتورة #${i.number}</strong><div class="muted">${i.customerName || 'بدون اسم'} • ${i.type}</div></div><div><strong>${formatMoney(i.totals.total)}</strong><div class="muted">${i.status}</div></div></div>`).join('') : '<div class="muted">لا توجد فواتير حتى الآن</div>';
+    $('#summaryBoxes').innerHTML = [
+      `الطلبات المعلقة: ${state.heldOrders.length}`,
+      `الطاولات المشغولة: ${busyTables}`,
+      `الرواتب المدفوعة: ${formatMoney(salaryPaid)}`,
+      `آخر رقم فاتورة: ${Math.max(1,nextInvoiceNumber()-1)}`
+    ].map(t=>`<div class="list-item"><strong>${t}</strong></div>`).join('');
+  }
+
+  function renderCategories(){
+    const row = $('#categoryRow');
+    row.innerHTML = '';
+    const allBtn = createButton('الكل','cat-btn'+(currentCategory==='all'?' active':''), ()=>{currentCategory='all';renderCategories();renderProducts();});
+    row.appendChild(allBtn);
+    state.categories.forEach(cat=>{
+      const btn = createButton(cat.name, 'cat-btn'+(currentCategory===cat.id?' active':''), ()=>{currentCategory=cat.id;renderCategories();renderProducts();});
+      btn.style.borderColor = cat.color || 'var(--line)';
+      if(currentCategory===cat.id) btn.style.background = cat.color || 'var(--primary)';
+      row.appendChild(btn);
+    });
+  }
+  function renderProducts(){
+    const q = ($('#productSearch').value || '').trim().toLowerCase();
+    let items = state.products.filter(p=>p.available);
+    if(currentCategory!=='all') items = items.filter(p=>p.categoryId===currentCategory);
+    if(q) items = items.filter(p=>p.name.toLowerCase().includes(q));
+    const grid = $('#productsGrid');
+    grid.style.gridTemplateColumns = state.settings.productView==='list' ? '1fr' : '';
+    grid.innerHTML = items.map(p=>`
+      <div class="product-card" data-product-id="${p.id}" style="border-color:${p.color||'var(--line)'}">
+        
+        <div class="product-body">
+          <strong>${p.name}</strong>
+          <div class="muted">${getCategoryName(p.categoryId)}</div>
+          <div class="price">${formatMoney(p.price)}</div>
+        </div>
+      </div>
+    `).join('') || '<div class="muted">لا توجد منتجات مطابقة.</div>';
+    $$('#productsGrid .product-card').forEach(card=>card.addEventListener('click', ()=>addProductToCart(card.dataset.productId)));
+  }
+  function addProductToCart(productId){
+    const product = getProduct(productId);
+    if(!product) return;
+    const separate = !!state.settings.separateLines;
+    if(separate){
+      currentCart.items.push({lineId:uid(),productId:product.id,name:product.name,price:Number(product.price),qty:1,note:'',categoryId:product.categoryId,cost:Number(product.cost||0)});
+    }else{
+      const existing = currentCart.items.find(i=>i.productId===product.id && !i.note);
+      if(existing) existing.qty += 1; else currentCart.items.push({lineId:uid(),productId:product.id,name:product.name,price:Number(product.price),qty:1,note:'',categoryId:product.categoryId,cost:Number(product.cost||0)});
+    }
+    syncCurrentTableOrder();
+    saveState();
+    renderCart();
+    renderTables();
+  }
+  function renderCart(){
+    $('#customerName').value = currentCart.customerName || '';
+    $('#customerPhone').value = currentCart.customerPhone || '';
+    $('#orderTypeSelect').value = currentCart.type;
+    $('#paymentMethodSelect').value = currentCart.paymentMethod;
+    
+    $('#invoiceNoView').textContent = nextInvoiceNumber();
+    const wrap = $('#cartItems');
+    wrap.innerHTML = currentCart.items.length ? currentCart.items.map(item=>`
+      <div class="cart-item">
+        <div class="cart-top">
+          <div><strong>${item.name}</strong><div class="muted">${formatMoney(item.price)} × ${item.qty}</div></div>
+          <button class="mini-btn danger-line" data-del="${item.lineId}">🗑</button>
+        </div>
+        <div class="row-between">
+          <div class="qty-controls">
+            <button class="mini-btn" data-inc="${item.lineId}">+</button>
+            <strong>${item.qty}</strong>
+            <button class="mini-btn" data-dec="${item.lineId}">-</button>
+          </div>
+          <strong>${formatMoney(item.qty * item.price)}</strong>
+        </div>
+        <input data-note="${item.lineId}" placeholder="ملاحظة على الصنف" value="${item.note || ''}" />
+      </div>
+    `).join('') : '<div class="muted">لا توجد أصناف داخل الفاتورة الحالية</div>';
+    $$('[data-inc]',wrap).forEach(b=>b.addEventListener('click', ()=>updateCartQty(b.dataset.inc, 1)));
+    $$('[data-dec]',wrap).forEach(b=>b.addEventListener('click', ()=>updateCartQty(b.dataset.dec, -1)));
+    $$('[data-del]',wrap).forEach(b=>b.addEventListener('click', ()=>deleteCartLine(b.dataset.del)));
+    $$('[data-note]',wrap).forEach(inp=>inp.addEventListener('input', ()=>setCartNote(inp.dataset.note, inp.value)));
+  }
+  function updateCartQty(lineId, delta){
+    const item = currentCart.items.find(i=>i.lineId===lineId); if(!item) return;
+    item.qty += delta; if(item.qty <= 0) currentCart.items = currentCart.items.filter(i=>i.lineId!==lineId);
+    syncCurrentTableOrder();
+    saveState();
+    renderCart();
+    renderTables();
+  }
+  function deleteCartLine(lineId){
+    currentCart.items = currentCart.items.filter(i=>i.lineId!==lineId);
+    syncCurrentTableOrder();
+    saveState();
+    renderCart();
+    renderTables();
+  }
+  function setCartNote(lineId, value){
+    const item=currentCart.items.find(i=>i.lineId===lineId);
+    if(item) item.note = value;
+    syncCurrentTableOrder();
+    saveState();
+  }
+  function clearCart(){
+    if(currentCart.tableId){
+      const table = state.tables.find(t=>t.id===currentCart.tableId);
+      if(table){
+        table.currentOrder = null;
+        table.invoiceId = null;
+        table.status = 'متاحة';
+        table.openedAt = null;
+        table.guests = 0;
+      }
+    }
+    currentCart = createEmptyCart();
+    saveState();
+    renderCart();
+    renderTables();
+    renderDashboard();
+    showToast('تم تفريغ الطلب الحالي');
+  }
+  function makeInvoiceDraft(status='مباعة'){
+    return {
+      id: uid(), number: nextInvoiceNumber(), createdAt: nowISO(), customerName: currentCart.customerName || '', customerPhone: currentCart.customerPhone || '',
+      type: currentCart.type, paymentMethod: currentCart.paymentMethod, cashierName: getCurrentUser().name, items: deepClone(currentCart.items),
+      totals: calcCartTotals(currentCart), status, tableId: currentCart.tableId || null
+    };
+  }
+  function completeSale(){
+    if(!currentCart.items.length) return showToast('أضف أصنافًا قبل إتمام البيع');
+
+    // اذا الطلب توصيل → اطلب بيانات الزبون
+    if(currentCart.type === 'توصيل'){
+      openModal('بيانات التوصيل', `
+        <div class="form-grid">
+          <div><label>اسم الزبون</label><input id="deliveryName" value="${currentCart.customerName||''}" /></div>
+          <div><label>رقم الهاتف</label><input id="deliveryPhone" value="${currentCart.customerPhone||''}" /></div>
+          <div class="full"><label>العنوان</label><textarea id="deliveryAddress" placeholder="اكتب العنوان الكامل..."></textarea></div>
+          <div class="full"><button class="primary-btn" id="confirmDeliveryBtn">تأكيد وإتمام الطلب</button></div>
+        </div>
+      `);
+
+      $('#confirmDeliveryBtn').addEventListener('click', ()=>{
+        const name = $('#deliveryName').value.trim();
+        const phone = $('#deliveryPhone').value.trim();
+        const address = $('#deliveryAddress').value.trim();
+
+        if(!name || !phone || !address) return showToast('يرجى إدخال جميع بيانات التوصيل');
+
+        currentCart.customerName = name;
+        currentCart.customerPhone = phone;
+        currentCart.deliveryAddress = address;
+
+        closeModal();
+        finalizeSale();
+      });
+
+    } else {
+      finalizeSale();
+    }
+  }
+
+  function finalizeSale(){
+    const invoice = makeInvoiceDraft('مباعة');
+    invoice.deliveryAddress = currentCart.deliveryAddress || '';
+
+    state.invoices.push(invoice);
+
+    if(invoice.tableId){
+      const table = state.tables.find(t=>t.id===invoice.tableId);
+      if(table){ table.status='متاحة'; table.invoiceId=null; table.openedAt=null; table.currentOrder=null; table.guests=0; }
+    }
+
+    commitInvoiceNumber();
+    saveState();
+    printInvoicePreview(invoice);
+    currentCart = createEmptyCart();
+    renderAll();
+    showToast('تم إتمام البيع بنجاح');
+  }
+  function holdCurrentOrder(){
+    if(!currentCart.items.length) return showToast('لا يوجد طلب لتعليقه');
+    state.heldOrders.push({...deepClone(currentCart), id:uid(), invoiceNumber: nextInvoiceNumber(), heldAt: nowISO(), cashierName:getCurrentUser().name});
+    saveState();
+    currentCart = createEmptyCart();
+    renderAll();
+    showToast('تم تعليق الطلب');
+  }
+  function openHeldOrdersModal(){
+    const items = state.heldOrders;
+    openModal('الطلبات المعلقة', items.length ? `
+      <div class="list">${items.map(o=>`
+        <div class="list-item">
+          <div>
+            <strong>طلب #${o.invoiceNumber}</strong>
+            <div class="muted">${formatDateTime(o.heldAt)} • ${o.cashierName}</div>
+          </div>
+          <div class="sub-actions">
+            <button class="primary-btn" data-resume="${o.id}">استرجاع</button>
+            <button class="danger-btn" data-delete-held="${o.id}">حذف</button>
+          </div>
+        </div>
+      `).join('')}</div>
+    ` : '<div class="muted">لا توجد طلبات معلقة</div>');
+    $$('[data-resume]').forEach(b=>b.addEventListener('click', ()=>resumeHeldOrder(b.dataset.resume)));
+    $$('[data-delete-held]').forEach(b=>b.addEventListener('click', ()=>deleteHeldOrder(b.dataset.deleteHeld)));
+  }
+  function resumeHeldOrder(id){
+    const idx = state.heldOrders.findIndex(o=>o.id===id); if(idx===-1) return;
+    currentCart = state.heldOrders.splice(idx,1)[0];
+    delete currentCart.id; delete currentCart.invoiceNumber; delete currentCart.heldAt; delete currentCart.cashierName;
+    saveState(); closeModal(); renderAll(); switchSection('cashier'); showToast('تم استرجاع الطلب المعلق');
+  }
+  function deleteHeldOrder(id){ state.heldOrders = state.heldOrders.filter(o=>o.id!==id); saveState(); openHeldOrdersModal(); renderAll(); }
+  function printKitchenTicket(){
+    if(!currentCart.items.length) return showToast('لا يوجد طلب للطباعة');
+    const html = `<h2>طلب مطبخ</h2><div>النوع: ${currentCart.type}</div><hr>${currentCart.items.map(i=>`<div>${i.qty} × ${i.name}${i.note?` - ${i.note}`:''}</div>`).join('')}<hr><div>${new Date().toLocaleString('ar-IQ')}</div>`;
+    $('#print-area').innerHTML = html; $('#print-area').classList.remove('hidden'); window.print(); $('#print-area').classList.add('hidden');
+  }
+  function openAssignTableModal(){
+    if(!currentCart.items.length) return showToast('لا يوجد طلب لتحويله');
+    const allTables = state.tables;
+    openModal('تحويل الطلب إلى طاولة', `
+      <div class="form-grid">
+        <div class="full"><label>اختر طاولة</label><select id="assignTableSelect">${allTables.map(t=>`<option value="${t.id}">${t.name} - ${t.zone} - ${t.status}</option>`).join('')}</select></div>
+        <div><label>عدد الأشخاص</label><input id="assignGuests" type="number" min="1" value="${currentCart.tableId ? (state.tables.find(t=>t.id===currentCart.tableId)?.guests || 2) : 2}" /></div>
+        <div><label>طريقة التحويل</label><select id="assignMode"><option value="replace">استبدال طلب الطاولة</option><option value="merge">دمج مع طلب الطاولة</option></select></div>
+        <div class="full muted" id="assignTableHint">إذا كانت الطاولة تحتوي طلبًا سابقًا يمكنك دمجه أو استبداله.</div>
+        <div class="full"><button class="primary-btn" id="confirmAssignTable">تأكيد التحويل</button></div>
+      </div>
+    `);
+    const select = $('#assignTableSelect');
+    const mode = $('#assignMode');
+    const refreshHint = ()=>{
+      const table = state.tables.find(t=>t.id===select.value);
+      const hasOrder = !!(table && table.currentOrder && table.currentOrder.items && table.currentOrder.items.length);
+      $('#assignTableHint').textContent = hasOrder ? 'الطاولة المختارة تحتوي طلبًا فعّالًا. اختر دمج أو استبدال.' : 'الطاولة المختارة فارغة وجاهزة للتحويل.';
+      mode.value = hasOrder ? 'merge' : 'replace';
+    };
+    select.addEventListener('change', refreshHint);
+    refreshHint();
+    $('#confirmAssignTable').addEventListener('click', ()=>{
+      const id = $('#assignTableSelect').value;
+      const guests = Number($('#assignGuests').value||0);
+      const assignMode = $('#assignMode').value;
+      assignOrderToTable(id, guests, assignMode);
+      closeModal();
+    });
+  }
+  function assignOrderToTable(tableId, guests, mode='replace'){
+    const targetTable = state.tables.find(t=>t.id===tableId); if(!targetTable) return;
+    const sourceTable = currentCart.tableId ? state.tables.find(t=>t.id===currentCart.tableId) : null;
+
+    let nextOrder = deepClone(currentCart);
+    nextOrder.tableId = tableId;
+    nextOrder.type = 'صالة';
+
+    const targetHasOrder = !!(targetTable.currentOrder && targetTable.currentOrder.items && targetTable.currentOrder.items.length);
+    if(targetHasOrder && sourceTable?.id !== targetTable.id){
+      if(mode === 'merge'){
+        const merged = deepClone(targetTable.currentOrder);
+        merged.items = [...(merged.items || []), ...(nextOrder.items || [])].map(item=>({
+          ...item,
+          lineId: item.lineId || uid()
+        }));
+        merged.customerName = merged.customerName || nextOrder.customerName;
+        merged.customerPhone = merged.customerPhone || nextOrder.customerPhone;
+        merged.paymentMethod = nextOrder.paymentMethod || merged.paymentMethod;
+        merged.type = 'صالة';
+        merged.tableId = tableId;
+        nextOrder = merged;
+      }
+    }
+
+    if(sourceTable && sourceTable.id !== targetTable.id){
+      sourceTable.currentOrder = null;
+      sourceTable.invoiceId = null;
+      sourceTable.status = 'متاحة';
+      sourceTable.openedAt = null;
+      sourceTable.guests = 0;
+    }
+
+    targetTable.status = 'مشغولة';
+    targetTable.openedAt = targetTable.openedAt || nowISO();
+    targetTable.guests = guests || targetTable.guests || 0;
+    targetTable.currentOrder = deepClone(nextOrder);
+
+    currentCart = deepClone(nextOrder);
+    saveState();
+    renderCart();
+    renderTables();
+    renderDashboard();
+    showToast(`تم تحويل الطلب إلى ${targetTable.name}`);
+  }
+  function splitBillDemo(){
+    if(currentCart.items.length < 2) return showToast('تقسيم الفاتورة يحتاج صنفين على الأقل');
+    const half = Math.ceil(currentCart.items.length/2);
+    const first = currentCart.items.slice(0,half).reduce((a,i)=>a+i.price*i.qty,0);
+    const second = currentCart.items.slice(half).reduce((a,i)=>a+i.price*i.qty,0);
+    openModal('تقسيم الفاتورة', `<div class="list"><div class="list-item"><strong>الجزء الأول</strong><strong>${formatMoney(first)}</strong></div><div class="list-item"><strong>الجزء الثاني</strong><strong>${formatMoney(second)}</strong></div></div>`);
+  }
+  function openDeliveryOrdersMode(){
+    currentCart.type = 'توصيل';
+    const orderType = $('#orderTypeSelect');
+    if(orderType) orderType.value = 'توصيل';
+    switchSection('cashier');
+    showToast('تم فتح وضع طلبات التوصيل');
+  }
+
+  function renderTables(){
+    const filter = $('#tableZoneFilter');
+    const zones = ['كل المناطق', ...new Set(state.tables.map(t=>t.zone))];
+    const current = filter.value || 'كل المناطق';
+    filter.innerHTML = zones.map(z=>`<option value="${z}">${z}</option>`).join('');
+    filter.value = zones.includes(current) ? current : 'كل المناطق';
+
+    const selectedZone = filter.value;
+    const tables = selectedZone==='كل المناطق' ? state.tables : state.tables.filter(t=>t.zone===selectedZone);
+    $('#tablesGrid').innerHTML = tables.map(t=>{
+      const cls = t.status==='متاحة' ? 'free' : t.status==='مشغولة' ? 'busy' : t.status==='محجوزة' ? 'reserved' : 'checkout';
+      const duration = t.openedAt ? diffMinutes(t.openedAt) : '-';
+      const itemsCount = t.currentOrder?.items?.reduce((sum,item)=>sum + Number(item.qty||0), 0) || 0;
+      const orderTotal = t.currentOrder ? calcCartTotals(t.currentOrder).total : 0;
+      return `
+        <div class="table-card ${cls}">
+          <div class="row-between"><strong>${t.name}</strong><span class="pill">${t.zone}</span></div>
+          <div class="muted">الحالة: ${t.status}</div>
+          <div class="muted">الضيوف: ${t.guests || 0}</div>
+          <div class="muted">مدة الإشغال: ${duration}</div>
+          <div class="table-meta">
+            <div class="row-between"><span>الأصناف</span><strong>${itemsCount}</strong></div>
+            <div class="row-between"><span>إجمالي الطلب</span><strong>${formatMoney(orderTotal)}</strong></div>
+          </div>
+          <div class="sub-actions">
+            <button class="primary-btn" data-open-table="${t.id}">فتح</button>
+            <button class="soft-btn" data-edit-table="${t.id}">تعديل</button>
+            <button class="outline-btn" data-status-table="${t.id}">حالة</button>
+            <button class="danger-btn" data-delete-table="${t.id}">حذف</button>
+          </div>
+        </div>`;
+    }).join('') || '<div class="muted">لا توجد طاولات</div>';
+
+    $$('[data-open-table]').forEach(b=>b.addEventListener('click', ()=>openTableOrder(b.dataset.openTable)));
+    $$('[data-edit-table]').forEach(b=>b.addEventListener('click', ()=>openTableModal(b.dataset.editTable)));
+    $$('[data-status-table]').forEach(b=>b.addEventListener('click', ()=>openTableStatusModal(b.dataset.statusTable)));
+    $$('[data-delete-table]').forEach(b=>b.addEventListener('click', ()=>deleteTable(b.dataset.deleteTable)));
+  }
+  function diffMinutes(iso){
+    const mins = Math.floor((Date.now()-new Date(iso).getTime())/60000);
+    if(mins<60) return `${mins} دقيقة`;
+    const h = Math.floor(mins/60), m = mins%60;
+    return `${h} س ${m} د`;
+  }
+  function openTableModal(id=null){
+    const t = id ? state.tables.find(x=>x.id===id) : {name:'',zone:'داخلي',status:'متاحة',guests:0};
+    openModal(id?'تعديل طاولة':'إضافة طاولة', `
+      <div class="form-grid">
+        <div><label>اسم الطاولة</label><input id="tableName" value="${t.name||''}" /></div>
+        <div><label>المنطقة</label><select id="tableZone"><option ${t.zone==='داخلي'?'selected':''}>داخلي</option><option ${t.zone==='خارجي'?'selected':''}>خارجي</option><option ${t.zone==='عوائل'?'selected':''}>عوائل</option><option ${t.zone==='VIP'?'selected':''}>VIP</option></select></div>
+        <div><label>الحالة</label><select id="tableStatus"><option ${t.status==='متاحة'?'selected':''}>متاحة</option><option ${t.status==='مشغولة'?'selected':''}>مشغولة</option><option ${t.status==='محجوزة'?'selected':''}>محجوزة</option><option ${t.status==='بانتظار الحساب'?'selected':''}>بانتظار الحساب</option></select></div>
+        <div><label>عدد الضيوف</label><input id="tableGuests" type="number" min="0" value="${t.guests||0}" /></div>
+        <div class="full"><button class="primary-btn" id="saveTableBtn">حفظ</button></div>
+      </div>
+    `);
+    $('#saveTableBtn').addEventListener('click', ()=>{
+      const data = {name:$('#tableName').value.trim(),zone:$('#tableZone').value,status:$('#tableStatus').value,guests:Number($('#tableGuests').value||0)};
+      if(!data.name) return showToast('اسم الطاولة مطلوب');
+      if(id){ Object.assign(state.tables.find(x=>x.id===id), data); }
+      else state.tables.push({id:uid(), ...data, openedAt:data.status==='متاحة'?null:nowISO(), invoiceId:null, currentOrder:null});
+      saveState(); closeModal(); renderTables(); renderDashboard(); showToast('تم حفظ الطاولة');
+    });
+  }
+  function openTableStatusModal(id){
+    const t = state.tables.find(x=>x.id===id); if(!t) return;
+    openModal(`تغيير حالة ${t.name}`, `
+      <div class="form-grid">
+        <div class="full"><select id="newTableStatus"><option>متاحة</option><option>مشغولة</option><option>محجوزة</option><option>بانتظار الحساب</option></select></div>
+        <div class="full"><button class="primary-btn" id="saveStatusBtn">حفظ الحالة</button></div>
+      </div>`);
+    $('#newTableStatus').value = t.status;
+    $('#saveStatusBtn').addEventListener('click', ()=>{
+      const nextStatus = $('#newTableStatus').value;
+      const hasOrder = !!(t.currentOrder && t.currentOrder.items && t.currentOrder.items.length);
+      if(nextStatus==='متاحة' && hasOrder) return showToast('لا يمكن جعل الطاولة متاحة وفيها طلب فعّال');
+      t.status = nextStatus;
+      if(t.status==='متاحة'){
+        t.invoiceId=null; t.openedAt=null; t.currentOrder=null; t.guests=0;
+      }else{
+        t.openedAt = t.openedAt || nowISO();
+      }
+      saveState(); closeModal(); renderTables(); renderDashboard(); showToast('تم تحديث حالة الطاولة');
+    });
+  }
+  function openTableOrder(id){
+    const table = state.tables.find(t=>t.id===id); if(!table) return;
+
+    // احفظ الطاولة الحالية قبل الانتقال إلى طاولة أخرى
+    persistWorkingTableBeforeSwitch();
+
+    if(table.currentOrder && table.currentOrder.items && table.currentOrder.items.length){
+      currentCart = deepClone(table.currentOrder);
+      currentCart.tableId = table.id;
+      currentCart.type = 'صالة';
+      table.status = table.status === 'محجوزة' ? 'محجوزة' : 'مشغولة';
+      table.openedAt = table.openedAt || nowISO();
+      showToast(`تم فتح طلب ${table.name}`);
+    }else if(table.invoiceId){
+      const inv = state.invoices.find(i=>i.id===table.invoiceId);
+      if(inv){
+        currentCart = {customerName:inv.customerName,customerPhone:inv.customerPhone,type:'صالة',paymentMethod:inv.paymentMethod,discount:inv.totals.discount,service:inv.totals.service,received:0,items:deepClone(inv.items),tableId:table.id};
+        table.currentOrder = deepClone(currentCart);
+        table.status = table.status === 'محجوزة' ? 'محجوزة' : 'مشغولة';
+        table.openedAt = table.openedAt || nowISO();
+        showToast(`تم فتح طلب ${table.name}`);
+      }
+    }else{
+      currentCart = createEmptyCart();
+      currentCart.tableId = table.id;
+      currentCart.type = 'صالة';
+      table.currentOrder = deepClone(currentCart);
+      table.status = table.status === 'محجوزة' ? 'محجوزة' : 'مشغولة';
+      table.openedAt = table.openedAt || nowISO();
+      showToast(`تم إنشاء طلب جديد على ${table.name}`);
+    }
+    saveState(); renderAll(); switchSection('cashier');
+  }
+  function deleteTable(id){
+    const table = state.tables.find(t=>t.id===id); if(!table) return;
+    if(table.status!=='متاحة') return showToast('لا يمكن حذف طاولة غير متاحة');
+    state.tables = state.tables.filter(t=>t.id!==id); saveState(); renderTables(); renderDashboard();
+  }
+
+  function renderReports(){
+    const range = $('#reportRange').value;
+    const invoices = filterInvoicesByRange(range).filter(i=>i.status==='مباعة');
+    const sales = invoices.reduce((a,i)=>a + i.totals.total, 0);
+    const cost = invoices.reduce((a,i)=>a + i.items.reduce((x,it)=>x + (Number(it.cost||0) * Number(it.qty||0)),0), 0);
+    const discounts = invoices.reduce((a,i)=>a + Number(i.totals.discount||0), 0);
+    const profit = sales - cost;
+    const kpis = [
+      ['إجمالي المبيعات', formatMoney(sales)],
+      ['الربح التقريبي', formatMoney(profit)],
+      ['الخصومات', formatMoney(discounts)],
+      ['عدد الفواتير', invoices.length.toLocaleString('ar-IQ')]
+    ];
+    $('#reportKpis').innerHTML = kpis.map(([t,v])=>`<div class="kpi"><div class="muted">${t}</div><div class="v">${v}</div></div>`).join('');
+
+    const catMap = {};
+    const prodMap = {};
+    const payMap = {};
+    invoices.forEach(inv=>{
+      payMap[inv.paymentMethod] ||= {count:0,total:0};
+      payMap[inv.paymentMethod].count += 1; payMap[inv.paymentMethod].total += inv.totals.total;
+      inv.items.forEach(item=>{
+        const cat = getCategoryName(item.categoryId);
+        catMap[cat] ||= {qty:0,total:0}; catMap[cat].qty += item.qty; catMap[cat].total += item.qty*item.price;
+        prodMap[item.name] ||= {qty:0,total:0}; prodMap[item.name].qty += item.qty; prodMap[item.name].total += item.qty*item.price;
+      });
+    });
+
+    fillTable($('#categoryReportBody'), Object.entries(catMap).sort((a,b)=>b[1].total-a[1].total).map(([k,v])=>`<tr><td>${k}</td><td>${v.qty}</td><td>${formatMoney(v.total)}</td></tr>`));
+    fillTable($('#productReportBody'), Object.entries(prodMap).sort((a,b)=>b[1].total-a[1].total).slice(0,12).map(([k,v])=>`<tr><td>${k}</td><td>${v.qty}</td><td>${formatMoney(v.total)}</td></tr>`));
+    fillTable($('#paymentReportBody'), Object.entries(payMap).map(([k,v])=>`<tr><td>${k}</td><td>${v.count}</td><td>${formatMoney(v.total)}</td></tr>`));
+
+    renderSalesChart(invoices);
+  }
+  function renderSalesChart(invoices){
+    const days = {};
+    invoices.forEach(i=>{
+      const k = i.createdAt.slice(0,10);
+      days[k] = (days[k]||0) + i.totals.total;
+    });
+    const entries = Object.entries(days).slice(-7);
+    const max = Math.max(1, ...entries.map(e=>e[1]));
+    $('#salesChart').innerHTML = entries.length ? entries.map(([d,v])=>`<div class="bar" style="height:${Math.max(18, (v/max)*100)}%"><span>${Math.round(v).toLocaleString('ar-IQ')}</span><label>${d.slice(5)}</label></div>`).join('') : '<div class="muted">لا توجد بيانات للرسم</div>';
+  }
+  function fillTable(body, rows){ body.innerHTML = rows.length ? rows.join('') : '<tr><td colspan="3" class="muted">لا توجد بيانات</td></tr>'; }
+  function filterInvoicesByRange(range){
+    const now = new Date();
+    return state.invoices.filter(i=>{
+      const d = new Date(i.createdAt);
+      if(range==='all') return true;
+      if(range==='today') return d.toDateString()===now.toDateString();
+      if(range==='yesterday'){ const y = new Date(); y.setDate(now.getDate()-1); return d.toDateString()===y.toDateString(); }
+      if(range==='week'){ const w = new Date(); w.setDate(now.getDate()-7); return d>=w; }
+      if(range==='month'){ return d.getFullYear()===now.getFullYear() && d.getMonth()===now.getMonth(); }
+      if(range==='year'){ return d.getFullYear()===now.getFullYear(); }
+      return true;
+    });
+  }
+  function sumInvoicesByRange(range){ return filterInvoicesByRange(range).filter(i=>i.status==='مباعة').reduce((a,i)=>a + i.totals.total, 0); }
+  function exportCsvReport(){
+    const rows = [['رقم الفاتورة','التاريخ','الزبون','النوع','الدفع','الإجمالي','الحالة']];
+    filterInvoicesByRange($('#reportRange').value).forEach(i=>rows.push([i.number, formatDateTime(i.createdAt), i.customerName||'', i.type, i.paymentMethod, i.totals.total, i.status]));
+    const csv = rows.map(r=>r.map(x=>`"${String(x).replaceAll('"','""')}"`).join(',')).join('\n');
+    downloadFile('reports.csv', csv, 'text/csv;charset=utf-8;');
+    showToast('تم تصدير التقرير بصيغة CSV يمكن فتحها عبر Excel');
+  }
+
+  function renderSettings(){
+    $('#settingRestaurantName').value = state.settings.restaurantName;
+    $('#settingPhone').value = state.settings.phone;
+    $('#settingAddress').value = state.settings.address;
+    $('#settingReceiptMessage').value = state.settings.receiptMessage;
+    $('#settingCurrency').value = state.settings.currency;
+    $('#settingTax').value = state.settings.taxPercent;
+    $('#settingService').value = state.settings.defaultService;
+    $('#settingLogoText').value = state.settings.logoText;
+    $('#settingShiftNo').value = state.settings.shiftNo;
+    $('#settingProductView').value = state.settings.productView;
+    $('#settingSeparateLines').value = String(state.settings.separateLines);
+    $('#printerType').value = state.settings.printerType;
+    $('#customerPrinter').value = state.settings.customerPrinter;
+    $('#kitchenPrinter').value = state.settings.kitchenPrinter;
+    $('#paperSize').value = state.settings.paperSize;
+    $('#settingCurrentUser').innerHTML = state.users.map(u=>`<option value="${u.id}">${u.name} - ${u.role}</option>`).join('');
+    $('#settingCurrentUser').value = state.settings.currentUserId;
+    $('#receiptPreview').innerHTML = renderReceiptHtml(makeInvoiceDraft('معاينة'));
+
+    $('#categoriesTableBody').innerHTML = state.categories.map(c=>`<tr><td>${c.name}</td><td><span class="pill" style="border-color:${c.color};color:${c.color}">${c.color}</span></td><td><div class="sub-actions"><button class="soft-btn" data-edit-cat="${c.id}">تعديل</button><button class="danger-btn" data-del-cat="${c.id}">حذف</button></div></td></tr>`).join('');
+    $('#productsTableBody').innerHTML = state.products.map(p=>`<tr><td>${p.name}</td><td>${getCategoryName(p.categoryId)}</td><td>${formatMoney(p.price)}</td><td>${formatMoney(p.cost||0)}</td><td>${p.available?'نعم':'لا'}</td><td><div class="sub-actions"><button class="soft-btn" data-edit-prod="${p.id}">تعديل</button><button class="danger-btn" data-del-prod="${p.id}">حذف</button></div></td></tr>`).join('');
+    $('#usersTableBody').innerHTML = state.users.map(u=>`<tr><td>${u.name}</td><td>${u.role}</td><td>${u.permissions.join(', ')}</td><td><div class="sub-actions"><button class="soft-btn" data-edit-user="${u.id}">تعديل</button><button class="danger-btn" data-del-user="${u.id}">حذف</button></div></td></tr>`).join('');
+
+    $$('[data-edit-cat]').forEach(b=>b.addEventListener('click', ()=>openCategoryModal(b.dataset.editCat)));
+    $$('[data-del-cat]').forEach(b=>b.addEventListener('click', ()=>deleteCategory(b.dataset.delCat)));
+    $$('[data-edit-prod]').forEach(b=>b.addEventListener('click', ()=>openProductModal(b.dataset.editProd)));
+    $$('[data-del-prod]').forEach(b=>b.addEventListener('click', ()=>deleteProduct(b.dataset.delProd)));
+    $$('[data-edit-user]').forEach(b=>b.addEventListener('click', ()=>openUserModal(b.dataset.editUser)));
+    $$('[data-del-user]').forEach(b=>b.addEventListener('click', ()=>deleteUser(b.dataset.delUser)));
+  }
+  function saveGeneralSettings(){
+    Object.assign(state.settings, {
+      restaurantName:$('#settingRestaurantName').value.trim() || 'كباب الديرة',
+      phone:$('#settingPhone').value.trim(),
+      address:$('#settingAddress').value.trim(),
+      receiptMessage:$('#settingReceiptMessage').value.trim(),
+      currency:$('#settingCurrency').value.trim() || 'د.ع',
+      taxPercent:Number($('#settingTax').value||0),
+      defaultService:Number($('#settingService').value||0),
+      logoText:($('#settingLogoText').value.trim() || 'ك').slice(0,2)
+    });
+    saveState(); renderAll(); showToast('تم حفظ الإعدادات العامة');
+  }
+  function applyBranding(){ state.settings.logoText = ($('#settingLogoText').value.trim() || 'ك').slice(0,2); saveState(); renderBrand(); showToast('تم تطبيق الهوية'); }
+  function saveUiSettings(){
+    state.settings.currentUserId = $('#settingCurrentUser').value;
+    state.settings.shiftNo = Number($('#settingShiftNo').value||1);
+    state.settings.productView = $('#settingProductView').value;
+    state.settings.separateLines = $('#settingSeparateLines').value === 'true';
+    saveState(); renderAll(); showToast('تم حفظ إعدادات الواجهة');
+  }
+  function savePrintingSettings(){
+    state.settings.printerType = $('#printerType').value;
+    state.settings.customerPrinter = $('#customerPrinter').value.trim();
+    state.settings.kitchenPrinter = $('#kitchenPrinter').value.trim();
+    state.settings.paperSize = $('#paperSize').value;
+    saveState(); 
+    showToast('تم حفظ إعدادات الطباعة');
+  }
+
+  // ====== BLUETOOTH PRINTER SUPPORT ======
+  let bluetoothDevice = null;
+  let bluetoothServer = null;
+  let bluetoothCharacteristic = null;
+
+  async function connectBluetoothPrinter(){
+    try{
+      bluetoothDevice = await navigator.bluetooth.requestDevice({
+        acceptAllDevices:true,
+        optionalServices:['000018f0-0000-1000-8000-00805f9b34fb']
+      });
+
+      bluetoothServer = await bluetoothDevice.gatt.connect();
+
+      const service = await bluetoothServer.getPrimaryService('000018f0-0000-1000-8000-00805f9b34fb');
+      bluetoothCharacteristic = await service.getCharacteristic('00002af1-0000-1000-8000-00805f9b34fb');
+
+      showToast('تم ربط الطابعة بنجاح');
+    }catch(err){
+      console.error(err);
+      showToast('فشل الاتصال بالطابعة');
+    }
+  }
+
+  async function printBluetooth(text){
+    if(!bluetoothCharacteristic){
+      showToast('لم يتم ربط طابعة بلوتوث');
+      return;
+    }
+
+    try{
+      const encoder = new TextEncoder();
+      const payload = `${text}
+
+
+`;
+      const data = encoder.encode(payload);
+      await bluetoothCharacteristic.writeValue(data);
+      showToast('تمت الطباعة عبر البلوتوث');
+    }catch(err){
+      console.error(err);
+      showToast('خطأ في الطباعة');
+    }
+  }
+  function openCategoryModal(id=null){
+    const c = id ? state.categories.find(x=>x.id===id) : {name:'',color:'#2563eb'};
+    openModal(id?'تعديل فئة':'إضافة فئة', `
+      <div class="form-grid">
+        <div><label>اسم الفئة</label><input id="catName" value="${c.name||''}" /></div>
+        <div><label>اللون</label><input id="catColor" type="color" value="${c.color||'#2563eb'}" /></div>
+        <div class="full"><button class="primary-btn" id="saveCatBtn">حفظ</button></div>
+      </div>
+    `);
+    $('#saveCatBtn').addEventListener('click', ()=>{
+      const name = $('#catName').value.trim(); const color = $('#catColor').value;
+      if(!name) return showToast('اسم الفئة مطلوب');
+      if(id) Object.assign(state.categories.find(x=>x.id===id), {name,color});
+      else state.categories.push({id:uid(),name,color});
+      saveState(); closeModal(); renderAll();
+    });
+  }
+  function deleteCategory(id){
+    if(state.products.some(p=>p.categoryId===id)) return showToast('لا يمكن حذف فئة مرتبطة بمنتجات');
+    state.categories = state.categories.filter(c=>c.id!==id); saveState(); renderAll();
+  }
+  function openProductModal(id=null){
+    const p = id ? state.products.find(x=>x.id===id) : {name:'',categoryId:state.categories[0]?.id||'',price:0,cost:0,image:'',available:true,color:'#2563eb'};
+    openModal(id?'تعديل منتج':'إضافة منتج', `
+      <div class="form-grid">
+        <div><label>اسم المنتج</label><input id="prodName" value="${p.name||''}" /></div>
+        <div><label>الفئة</label><select id="prodCategory">${state.categories.map(c=>`<option value="${c.id}" ${p.categoryId===c.id?'selected':''}>${c.name}</option>`).join('')}</select></div>
+        <div><label>سعر البيع</label><input id="prodPrice" type="number" min="0" value="${p.price||0}" /></div>
+        <div><label>الكلفة</label><input id="prodCost" type="number" min="0" value="${p.cost||0}" /></div>
+        <div><label>رابط الصورة</label><input id="prodImage" value="${p.image||''}" /></div>
+        <div><label>اللون</label><input id="prodColor" type="color" value="${p.color||'#2563eb'}" /></div>
+        <div><label>متوفر</label><select id="prodAvailable"><option value="true">نعم</option><option value="false">لا</option></select></div>
+        <div class="full"><button class="primary-btn" id="saveProdBtn">حفظ</button></div>
+      </div>
+    `);
+    $('#prodAvailable').value = String(!!p.available);
+    $('#saveProdBtn').addEventListener('click', ()=>{
+      const data = {name:$('#prodName').value.trim(),categoryId:$('#prodCategory').value,price:Number($('#prodPrice').value||0),cost:Number($('#prodCost').value||0),image:$('#prodImage').value.trim(),available:$('#prodAvailable').value==='true',color:$('#prodColor').value};
+      if(!data.name) return showToast('اسم المنتج مطلوب');
+      if(id) Object.assign(state.products.find(x=>x.id===id), data);
+      else state.products.push({id:uid(),...data});
+      saveState(); closeModal(); renderAll();
+    });
+  }
+  function deleteProduct(id){ state.products = state.products.filter(p=>p.id!==id); saveState(); renderAll(); }
+  function openUserModal(id=null){
+    const u = id ? state.users.find(x=>x.id===id) : {name:'',role:'كاشير',permissions:['sale','print']};
+    openModal(id?'تعديل مستخدم':'إضافة مستخدم', `
+      <div class="form-grid">
+        <div><label>الاسم</label><input id="userNameInput" value="${u.name||''}" /></div>
+        <div><label>الدور</label><select id="userRole"><option ${u.role==='مدير'?'selected':''}>مدير</option><option ${u.role==='مشرف'?'selected':''}>مشرف</option><option ${u.role==='كاشير'?'selected':''}>كاشير</option></select></div>
+        <div class="full"><label>الصلاحيات</label><input id="userPerms" value="${(u.permissions||[]).join(', ')}" placeholder="sale, hold, print" /></div>
+        <div class="full"><button class="primary-btn" id="saveUserBtn">حفظ</button></div>
+      </div>
+    `);
+    $('#saveUserBtn').addEventListener('click', ()=>{
+      const data = {name:$('#userNameInput').value.trim(), role:$('#userRole').value, permissions:$('#userPerms').value.split(',').map(s=>s.trim()).filter(Boolean)};
+      if(!data.name) return showToast('اسم المستخدم مطلوب');
+      if(id) Object.assign(state.users.find(x=>x.id===id), data);
+      else state.users.push({id:uid(),...data});
+      saveState(); closeModal(); renderAll();
+    });
+  }
+  function deleteUser(id){
+    if(state.users.length<=1) return showToast('يجب إبقاء مستخدم واحد على الأقل');
+    if(state.settings.currentUserId===id) state.settings.currentUserId = state.users.find(u=>u.id!==id)?.id || state.settings.currentUserId;
+    state.users = state.users.filter(u=>u.id!==id); saveState(); renderAll();
+  }
+
+  function getMonthKey(date){
+    const d = new Date(date);
+    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+  }
+  function addMonthsToDate(date, months){
+    const d = new Date(date);
+    d.setMonth(d.getMonth() + months);
+    return d;
+  }
+  function getEmployeeDueInfo(employee){
+    const interval = Math.max(1, Number(employee.payIntervalMonths || 1));
+    const baseSalary = Number(employee.salaryBase || 0);
+    const start = employee.startDate ? new Date(employee.startDate) : new Date();
+    const now = new Date();
+    const dueMonths = [];
+    let cursor = new Date(start.getFullYear(), start.getMonth(), 1);
+    while(cursor <= now){
+      dueMonths.push(getMonthKey(cursor));
+      cursor = addMonthsToDate(cursor, interval);
+    }
+
+    const employeeRecords = state.salaries
+      .filter(s=>s.employeeId===employee.id)
+      .sort((a,b)=> new Date(a.createdAt || a.month).getTime() - new Date(b.createdAt || b.month).getTime());
+
+    const paidRecords = employeeRecords.filter(s=>s.status==='مدفوع');
+    const unpaidRecords = employeeRecords.filter(s=>s.status!=='مدفوع');
+
+    let paidBalance = paidRecords.reduce((sum, s)=> sum + Number(s.net || 0), 0);
+    const remainingPeriods = [];
+
+    dueMonths.forEach(month=>{
+      const covered = Math.min(baseSalary, paidBalance);
+      const remaining = Math.max(0, baseSalary - covered);
+      paidBalance = Math.max(0, paidBalance - baseSalary);
+      if(remaining > 0){
+        remainingPeriods.push({month, remaining, source:'schedule'});
+      }
+    });
+
+    const totalDueUntilNow = dueMonths.length * baseSalary;
+    const totalPaid = paidRecords.reduce((sum, s)=> sum + Number(s.net || 0), 0);
+    const scheduleRemaining = Math.max(0, totalDueUntilNow - totalPaid);
+    const totalRecordedUnpaid = unpaidRecords.reduce((sum, s)=> sum + Number(s.net || 0), 0);
+
+    unpaidRecords.forEach((record, index)=>{
+      remainingPeriods.push({
+        month: record.month || `حركة ${index + 1}`,
+        remaining: Number(record.net || 0),
+        source:'record',
+        createdAt: record.createdAt || ''
+      });
+    });
+
+    const dueAmount = Math.max(scheduleRemaining, totalRecordedUnpaid);
+    const unpaidMonths = remainingPeriods.map(p=>p.month);
+
+    return {
+      interval,
+      baseSalary,
+      dueMonths,
+      unpaidMonths,
+      dueAmount,
+      totalDueUntilNow,
+      totalPaid,
+      remainingPeriods,
+      totalRecordedUnpaid,
+      movementsCount: employeeRecords.length,
+      paidMovementsCount: paidRecords.length,
+      unpaidMovementsCount: unpaidRecords.length
+    };
+  }
+  function renderFinance(){
+    $('#expensesBody').innerHTML = state.expenses.map(e=>`<tr><td>${e.date}</td><td>${e.category}</td><td>${formatMoney(e.amount)}</td><td>${e.note||''}</td><td>${e.by||''}</td><td><div class="sub-actions"><button class="soft-btn" data-edit-expense="${e.id}">تعديل</button><button class="danger-btn" data-del-expense="${e.id}">حذف</button></div></td></tr>`).join('') || '<tr><td colspan="6" class="muted">لا توجد مصروفات</td></tr>';
+    const allDue = state.employees.map(getEmployeeDueInfo);
+    const totalDue = allDue.reduce((a,d)=>a + d.dueAmount, 0);
+    const withDue = allDue.filter(d=>d.dueAmount>0).length;
+    $('#employeeDueStats').innerHTML = `
+      <div class="stat-box"><div class="muted">إجمالي المستحقات</div><strong>${formatMoney(totalDue)}</strong></div>
+      <div class="stat-box"><div class="muted">موظفون عليهم مستحق</div><strong>${withDue.toLocaleString('ar-IQ')}</strong></div>
+      <div class="stat-box"><div class="muted">إجمالي الموظفين</div><strong>${state.employees.length.toLocaleString('ar-IQ')}</strong></div>
+      <div class="stat-box"><div class="muted">رواتب مدفوعة</div><strong>${state.salaries.filter(s=>s.status==='مدفوع').length.toLocaleString('ar-IQ')}</strong></div>`;
+    $('#employeesBody').innerHTML = state.employees.map(e=>{
+      const due = getEmployeeDueInfo(e);
+      return `<tr><td>${e.name}</td><td>${formatMoney(e.salaryBase)}</td><td>كل ${due.interval} شهر</td><td>${formatMoney(due.dueAmount)}</td><td><div class="sub-actions"><button class="soft-btn" data-view-due="${e.id}">المستحقات</button><button class="soft-btn" data-edit-emp="${e.id}">تعديل</button><button class="danger-btn" data-del-emp="${e.id}">حذف</button></div></td></tr>`;
+    }).join('') || '<tr><td colspan="5" class="muted">لا يوجد موظفون</td></tr>';
+    $('#salariesBody').innerHTML = state.salaries.map(s=>`<tr><td>${s.month}</td><td>${(state.employees.find(e=>e.id===s.employeeId)||{}).name||'-'}</td><td>${formatMoney(s.net)}</td><td>${s.status}</td><td><div class="sub-actions"><button class="soft-btn" data-pay-salary="${s.id}">تبديل الحالة</button><button class="danger-btn" data-del-salary="${s.id}">حذف</button></div></td></tr>`).join('') || '<tr><td colspan="5" class="muted">لا توجد رواتب مسجلة</td></tr>';
+    $$('[data-edit-expense]').forEach(b=>b.addEventListener('click', ()=>openExpenseModal(b.dataset.editExpense)));
+    $$('[data-del-expense]').forEach(b=>b.addEventListener('click', ()=>deleteExpense(b.dataset.delExpense)));
+    $$('[data-view-due]').forEach(b=>b.addEventListener('click', ()=>openEmployeeDueModal(b.dataset.viewDue)));
+    $$('[data-edit-emp]').forEach(b=>b.addEventListener('click', ()=>openEmployeeModal(b.dataset.editEmp)));
+    $$('[data-del-emp]').forEach(b=>b.addEventListener('click', ()=>deleteEmployee(b.dataset.delEmp)));
+    $$('[data-pay-salary]').forEach(b=>b.addEventListener('click', ()=>toggleSalaryStatus(b.dataset.paySalary)));
+    $$('[data-del-salary]').forEach(b=>b.addEventListener('click', ()=>deleteSalary(b.dataset.delSalary)));
+  }
+  function openExpenseModal(id=null){
+    const e = id ? state.expenses.find(x=>x.id===id) : {date:todayISO(),category:'مواد أولية',amount:0,note:'',by:getCurrentUser().name};
+    openModal(id?'تعديل مصروف':'إضافة مصروف', `
+      <div class="form-grid">
+        <div><label>التاريخ</label><input id="expDate" type="date" value="${e.date}" /></div>
+        <div><label>التصنيف</label><select id="expCategory"><option>إيجار</option><option>كهرباء</option><option>ماء</option><option>إنترنت</option><option>مواد أولية</option><option>صيانة</option><option>نقل</option><option>تنظيف</option><option>أخرى</option></select></div>
+        <div><label>القيمة</label><input id="expAmount" type="number" min="0" value="${e.amount}" /></div>
+        <div><label>أضيف بواسطة</label><input id="expBy" value="${e.by||''}" /></div>
+        <div class="full"><label>الوصف</label><textarea id="expNote">${e.note||''}</textarea></div>
+        <div class="full"><button class="primary-btn" id="saveExpenseBtn">حفظ</button></div>
+      </div>`);
+    $('#expCategory').value = e.category;
+    $('#saveExpenseBtn').addEventListener('click', ()=>{
+      const data = {date:$('#expDate').value,category:$('#expCategory').value,amount:Number($('#expAmount').value||0),by:$('#expBy').value.trim(),note:$('#expNote').value.trim()};
+      if(id) Object.assign(state.expenses.find(x=>x.id===id), data); else state.expenses.push({id:uid(),...data});
+      saveState(); closeModal(); renderFinance(); renderDashboard();
+    });
+  }
+  function deleteExpense(id){ state.expenses = state.expenses.filter(e=>e.id!==id); saveState(); renderFinance(); renderDashboard(); }
+  function openEmployeeModal(id=null){
+    const e = id ? state.employees.find(x=>x.id===id) : {name:'',phone:'',salaryBase:0,payIntervalMonths:1,startDate:todayISO(),notes:''};
+    openModal(id?'تعديل موظف':'إضافة موظف', `
+      <div class="form-grid">
+        <div><label>الاسم</label><input id="empName" value="${e.name||''}" /></div>
+        <div><label>الهاتف</label><input id="empPhone" value="${e.phone||''}" /></div>
+        <div><label>الراتب الأساسي</label><input id="empSalary" type="number" min="0" value="${e.salaryBase||0}" /></div>
+        <div><label>كل كم شهر يستلم</label><input id="empInterval" type="number" min="1" value="${e.payIntervalMonths||1}" /></div>
+        <div><label>تاريخ بدء الاستحقاق</label><input id="empStartDate" type="date" value="${e.startDate||todayISO()}" /></div>
+        <div><label>ملاحظات</label><input id="empNotes" value="${e.notes||''}" /></div>
+        <div class="full"><button class="primary-btn" id="saveEmpBtn">حفظ</button></div>
+      </div>`);
+    $('#saveEmpBtn').addEventListener('click', ()=>{
+      const data = {name:$('#empName').value.trim(), phone:$('#empPhone').value.trim(), salaryBase:Number($('#empSalary').value||0), payIntervalMonths:Math.max(1, Number($('#empInterval').value||1)), startDate:$('#empStartDate').value || todayISO(), notes:$('#empNotes').value.trim()};
+      if(!data.name) return showToast('اسم الموظف مطلوب');
+      if(id) Object.assign(state.employees.find(x=>x.id===id), data); else state.employees.push({id:uid(),...data});
+      saveState(); closeModal(); renderFinance();
+    });
+  }
+  function openEmployeeDueModal(id){
+    const employee = state.employees.find(e=>e.id===id); if(!employee) return;
+    const due = getEmployeeDueInfo(employee);
+    openModal(`مستحقات ${employee.name}`, `
+      <div class="list">
+        <div class="list-item"><span>الراتب الأساسي</span><strong>${formatMoney(employee.salaryBase)}</strong></div>
+        <div class="list-item"><span>دورية الاستحقاق</span><strong>كل ${due.interval} شهر</strong></div>
+        <div class="list-item"><span>إجمالي الاستحقاق حتى الآن</span><strong>${formatMoney(due.totalDueUntilNow)}</strong></div>
+        <div class="list-item"><span>إجمالي المدفوع</span><strong>${formatMoney(due.totalPaid)}</strong></div>
+        <div class="list-item"><span>غير المدفوع من كل حركات التسجيل</span><strong>${formatMoney(due.totalRecordedUnpaid)}</strong></div>
+        <div class="list-item"><span>عدد حركات التسجيل</span><strong>${due.movementsCount.toLocaleString('ar-IQ')}</strong></div>
+        <div class="list-item"><span>إجمالي المستحق التراكمي الآن</span><strong>${formatMoney(due.dueAmount)}</strong></div>
+        <div class="list-item" style="display:block">
+          <div style="margin-bottom:8px">الفترات والحركات غير المغطاة بعد الاحتساب التراكمي</div>
+          <div>${due.remainingPeriods.length ? due.remainingPeriods.map(p=>`<div class="pill" style="margin:4px 0;display:block">${p.month} — المتبقي ${formatMoney(p.remaining)}${p.source==='record' ? ' — من حركة تسجيل' : ''}${p.createdAt ? ` — ${formatDateTime(p.createdAt)}` : ''}</div>`).join('') : '<strong>لا يوجد</strong>'}</div>
+        </div>
+      </div>`);
+  }
+  function deleteEmployee(id){
+    if(state.salaries.some(s=>s.employeeId===id)) return showToast('لا يمكن حذف موظف مرتبط برواتب');
+    state.employees = state.employees.filter(e=>e.id!==id); saveState(); renderFinance();
+  }
+  function openSalaryModal(){
+    if(!state.employees.length) return showToast('أضف موظفًا أولاً');
+    openModal('تسجيل راتب', `
+      <div class="form-grid">
+        <div><label>الشهر / فترة الاستحقاق</label><input id="salaryMonth" type="month" value="${todayISO().slice(0,7)}" /></div>
+        <div><label>الموظف</label><select id="salaryEmployee">${state.employees.map(e=>`<option value="${e.id}">${e.name}</option>`).join('')}</select></div>
+        <div><label>حوافز</label><input id="salaryBonus" type="number" min="0" value="0" /></div>
+        <div><label>خصومات</label><input id="salaryDeduction" type="number" min="0" value="0" /></div>
+        <div><label>سلف</label><input id="salaryAdvance" type="number" min="0" value="0" /></div>
+        <div><label>الحالة</label><select id="salaryStatus"><option>غير مدفوع</option><option>مدفوع</option></select></div>
+        <div class="full"><button class="primary-btn" id="saveSalaryBtn">حفظ</button></div>
+      </div>`);
+    $('#saveSalaryBtn').addEventListener('click', ()=>{
+      const employee = state.employees.find(e=>e.id===$('#salaryEmployee').value);
+      const month = $('#salaryMonth').value;
+      const bonus = Number($('#salaryBonus').value||0), deduction = Number($('#salaryDeduction').value||0), advance = Number($('#salaryAdvance').value||0);
+      const net = Math.max(0, Number(employee.salaryBase||0) + bonus - deduction - advance);
+      state.salaries.push({id:uid(), month, employeeId:employee.id, bonus, deduction, advance, net, status:$('#salaryStatus').value, createdAt: nowISO()});
+      saveState(); closeModal(); renderFinance(); renderDashboard();
+      showToast('تمت إضافة سجل راتب جديد');
+    });
+  }
+  function openBulkSalaryModal(){
+    if(!state.employees.length) return showToast('أضف موظفًا أولاً');
+    const month = todayISO().slice(0,7);
+    openModal('تسجيل رواتب دفعة واحدة', `
+      <div class="form-grid">
+        <div><label>الشهر / فترة الاستحقاق</label><input id="bulkSalaryMonth" type="month" value="${month}" /></div>
+        <div><label>الحالة</label><select id="bulkSalaryStatus"><option>غير مدفوع</option><option>مدفوع</option></select></div>
+        <div><label>حوافز عامة</label><input id="bulkSalaryBonus" type="number" min="0" value="0" /></div>
+        <div><label>خصومات عامة</label><input id="bulkSalaryDeduction" type="number" min="0" value="0" /></div>
+        <div><label>سلف عامة</label><input id="bulkSalaryAdvance" type="number" min="0" value="0" /></div>
+        <div style="display:flex;align-items:end"><button class="outline-btn" id="selectDueEmployeesBtn">تحديد المستحقين فقط</button></div>
+        <div class="full">
+          <label>اختر الموظفين</label>
+          <div id="bulkEmployeesList" class="list">${state.employees.map(e=>`<label class="list-item"><span>${e.name}</span><input type="checkbox" data-bulk-employee value="${e.id}"></label>`).join('')}</div>
+        </div>
+        <div class="full"><button class="primary-btn" id="saveBulkSalaryBtn">حفظ الرواتب المحددة</button></div>
+      </div>`);
+
+    $('#selectDueEmployeesBtn').addEventListener('click', ()=>{
+      const targetMonth = $('#bulkSalaryMonth').value;
+      $$('[data-bulk-employee]').forEach(box=>{
+        const employee = state.employees.find(e=>e.id===box.value);
+        const due = getEmployeeDueInfo(employee);
+        box.checked = due.unpaidMonths.includes(targetMonth);
+      });
+    });
+
+    $('#saveBulkSalaryBtn').addEventListener('click', ()=>{
+      const targetMonth = $('#bulkSalaryMonth').value;
+      const selectedIds = $$('[data-bulk-employee]:checked').map(el=>el.value);
+      if(!selectedIds.length) return showToast('اختر موظفًا واحدًا على الأقل');
+      const bonus = Number($('#bulkSalaryBonus').value||0);
+      const deduction = Number($('#bulkSalaryDeduction').value||0);
+      const advance = Number($('#bulkSalaryAdvance').value||0);
+      const status = $('#bulkSalaryStatus').value;
+      let added = 0;
+      selectedIds.forEach(employeeId=>{
+        const employee = state.employees.find(e=>e.id===employeeId);
+        if(!employee) return;
+        const net = Math.max(0, Number(employee.salaryBase||0) + bonus - deduction - advance);
+        state.salaries.push({id:uid(), month:targetMonth, employeeId:employee.id, bonus, deduction, advance, net, status, createdAt: nowISO()});
+        added += 1;
+      });
+      saveState(); closeModal(); renderFinance(); renderDashboard();
+      showToast(`تمت إضافة ${added} سجل راتب`);
+    });
+  }
+  function toggleSalaryStatus(id){ const s=state.salaries.find(x=>x.id===id); if(!s) return; s.status = s.status==='مدفوع' ? 'غير مدفوع' : 'مدفوع'; saveState(); renderFinance(); renderDashboard(); }
+  function deleteSalary(id){ state.salaries = state.salaries.filter(s=>s.id!==id); saveState(); renderFinance(); renderDashboard(); }
+
+  function renderArchive(){
+    const q = ($('#archiveSearch').value||'').trim().toLowerCase();
+    const status = $('#archiveStatusFilter').value;
+    let rows = [...state.invoices].reverse();
+    if(status!=='all') rows = rows.filter(i=>i.status===status);
+    if(q) rows = rows.filter(i=> String(i.number).includes(q) || (i.customerName||'').toLowerCase().includes(q) || (i.cashierName||'').toLowerCase().includes(q));
+    $('#archiveBody').innerHTML = rows.map(i=>`<tr>
+      <td>${i.number}</td><td>${formatDateTime(i.createdAt)}</td><td>${i.customerName||'-'}</td><td>${i.type}</td><td>${i.paymentMethod}</td><td>${formatMoney(i.totals.total)}</td><td>${i.status}</td><td>${i.cashierName}</td>
+      <td><div class="sub-actions"><button class="soft-btn" data-view-invoice="${i.id}">فتح</button><button class="outline-btn" data-print-invoice="${i.id}">طباعة</button><button class="warning-btn" data-return-invoice="${i.id}">استرجاع</button><button class="danger-btn" data-cancel-invoice="${i.id}">إلغاء</button></div></td>
+    </tr>`).join('') || '<tr><td colspan="9" class="muted">لا توجد فواتير</td></tr>';
+
+    $$('[data-view-invoice]').forEach(b=>b.addEventListener('click', ()=>viewInvoice(b.dataset.viewInvoice)));
+    $$('[data-print-invoice]').forEach(b=>b.addEventListener('click', ()=>printStoredInvoice(b.dataset.printInvoice)));
+    $$('[data-return-invoice]').forEach(b=>b.addEventListener('click', ()=>markInvoiceStatus(b.dataset.returnInvoice,'مسترجعة')));
+    $$('[data-cancel-invoice]').forEach(b=>b.addEventListener('click', ()=>markInvoiceStatus(b.dataset.cancelInvoice,'ملغاة')));
+  }
+  function viewInvoice(id){
+    const i = state.invoices.find(x=>x.id===id); if(!i) return;
+    openModal(`فاتورة #${i.number}`, renderReceiptHtml(i) + `<div style="margin-top:12px" class="sub-actions"><button class="outline-btn" id="whatsappTextBtn">إعداد نص واتساب</button><button class="primary-btn" id="reprintBtn">إعادة الطباعة</button></div>`);
+    $('#reprintBtn').addEventListener('click', ()=>printInvoicePreview(i));
+    $('#whatsappTextBtn').addEventListener('click', ()=>{
+      const text = encodeURIComponent(buildWhatsAppInvoiceText(i));
+      window.open(`https://wa.me/${(i.customerPhone||'').replace(/\D/g,'')}?text=${text}`,'_blank');
+    });
+  }
+  function printStoredInvoice(id){ const i = state.invoices.find(x=>x.id===id); if(i) printInvoicePreview(i); }
+  function markInvoiceStatus(id, status){ const i=state.invoices.find(x=>x.id===id); if(!i) return; i.status = status; saveState(); renderArchive(); renderReports(); renderDashboard(); showToast(`تم تحديث الحالة إلى ${status}`); }
+
+  function renderReceiptHtml(invoice){
+    return `
+      <div style="font-family:Tahoma,Arial,sans-serif;line-height:1.8">
+        <div style="text-align:center;font-weight:700;font-size:22px">${state.settings.restaurantName}</div>
+        <div style="text-align:center">${state.settings.phone || ''}</div>
+        <div style="text-align:center">${state.settings.address || ''}</div>
+        <hr>
+        <div>رقم الفاتورة: ${invoice.number}</div>
+        <div>التاريخ: ${formatDateTime(invoice.createdAt)}</div>
+        <div>الزبون: ${invoice.customerName || '-'}</div>
+        <div>النوع: ${invoice.type}</div>
+        <div>الدفع: ${invoice.paymentMethod}</div>
+        <hr>
+        ${invoice.items.map(i=>`<div style="display:flex;justify-content:space-between;gap:10px"><span>${i.qty} × ${i.name}${i.note?`<small> (${i.note})</small>`:''}</span><strong>${formatMoney(i.qty*i.price)}</strong></div>`).join('')}
+        <hr>
+        <div style="display:flex;justify-content:space-between"><span>المجموع الفرعي</span><strong>${formatMoney(invoice.totals.subtotal)}</strong></div>
+        <div style="display:flex;justify-content:space-between"><span>الخصم</span><strong>${formatMoney(invoice.totals.discount)}</strong></div>
+        <div style="display:flex;justify-content:space-between"><span>رسوم الخدمة</span><strong>${formatMoney(invoice.totals.service)}</strong></div>
+        <div style="display:flex;justify-content:space-between"><span>الضريبة</span><strong>${formatMoney(invoice.totals.tax)}</strong></div>
+        <div style="display:flex;justify-content:space-between;font-size:18px"><span>الإجمالي</span><strong>${formatMoney(invoice.totals.total)}</strong></div>
+        <hr>
+        <div style="text-align:center">${state.settings.receiptMessage || ''}</div>
+      </div>`;
+  }
+  function buildWhatsAppInvoiceText(i){
+    return `*${state.settings.restaurantName}*\nفاتورة رقم: ${i.number}\nالزبون: ${i.customerName || '-'}\nنوع الطلب: ${i.type}\nطريقة الدفع: ${i.paymentMethod}\n----------------\n${i.items.map(x=>`${x.qty} × ${x.name} = ${x.qty*x.price}`).join('\n')}\n----------------\nالإجمالي: ${i.totals.total} ${state.settings.currency}\n${state.settings.receiptMessage || ''}`;
+  }
+  function printInvoicePreview(invoice){
+  const area = document.getElementById('print-area');
+
+  const paperWidth = state.settings.paperSize === '58' ? '58mm' : '80mm';
+
+  const itemsHtml = invoice.items.map(i => `
+    <div class="item">
+      <div class="name">${i.name}</div>
+      <div class="row">
+        <span>${i.qty} × ${formatMoney(i.price)}</span>
+        <span>${formatMoney(i.qty * i.price)}</span>
+      </div>
+    </div>
+  `).join('');
+
+  area.innerHTML = `
+    <style>
+      #print-area{
+        width:${paperWidth};
+        font-family:monospace;
+        direction:rtl;
+      }
+      .receipt{
+        width:100%;
+        padding:6px;
+      }
+      .center{text-align:center}
+      .line{
+        border-top:1px dashed #000;
+        margin:6px 0;
+      }
+      .item{margin:4px 0}
+      .item .name{font-size:12px;font-weight:bold}
+      .row{
+        display:flex;
+        justify-content:space-between;
+        font-size:11px;
+      }
+      .total{
+        font-size:13px;
+        font-weight:bold;
+      }
+    </style>
+
+    <div class="receipt">
+      <div class="center">
+        <div><strong>${state.settings.restaurantName}</strong></div>
+        <div>${state.settings.phone || ''}</div>
+        <div>${state.settings.address || ''}</div>
+      </div>
+
+      <div class="line"></div>
+
+      <div>فاتورة #: ${invoice.number}</div>
+      <div>${formatDateTime(invoice.createdAt)}</div>
+      <div>النوع: ${invoice.type}</div>
+      <div>الزبون: ${invoice.customerName || '-'}</div>
+
+      <div class="line"></div>
+
+      ${itemsHtml}
+
+      <div class="line"></div>
+
+      <div class="row"><span>المجموع</span><span>${formatMoney(invoice.totals.subtotal)}</span></div>
+      <div class="row"><span>خصم</span><span>${formatMoney(invoice.totals.discount)}</span></div>
+      <div class="row"><span>خدمة</span><span>${formatMoney(invoice.totals.service)}</span></div>
+      <div class="row"><span>ضريبة</span><span>${formatMoney(invoice.totals.tax)}</span></div>
+
+      <div class="line"></div>
+
+      <div class="row total"><span>الإجمالي</span><span>${formatMoney(invoice.totals.total)}</span></div>
+
+      <div class="line"></div>
+
+      <div class="center">
+        ${state.settings.receiptMessage || ''}
+      </div>
+    </div>
+  `;
+  window.print();
+}
+
+  function stripHtml(html){
+    const div = document.createElement('div');
+    div.innerHTML = html;
+    return div.innerText;
+  }
+
+  function exportBackup(){
+    downloadFile(`backup-${todayISO()}.json`, JSON.stringify(state,null,2), 'application/json');
+    showToast('تم تصدير النسخة الاحتياطية');
+  }
+  function importBackup(e){
+    const file = e.target.files[0]; if(!file) return;
+    const reader = new FileReader();
+    reader.onload = ()=>{
+      try{ state = deepMerge(defaultData, JSON.parse(reader.result)); saveState(); currentCart=createEmptyCart(); renderAll(); showToast('تمت استعادة النسخة الاحتياطية'); }
+      catch(err){ console.error(err); showToast('فشل استيراد النسخة الاحتياطية'); }
+    };
+    reader.readAsText(file,'utf-8');
+    e.target.value='';
+  }
+  function loadDemoSales(){
+    if(state.invoices.length) return showToast('البيانات التجريبية لا تعمل عند وجود فواتير حالية');
+    for(let d=0; d<7; d++){
+      const date = new Date(); date.setDate(date.getDate()-d);
+      const count = 2 + Math.floor(Math.random()*4);
+      for(let i=0;i<count;i++){
+        const p = state.products[i % state.products.length];
+        const subtotal = p.price * (1+i%2);
+        state.invoices.push({
+          id:uid(), number: state.counters.invoice++, createdAt: new Date(date.getTime() - i*3600000).toISOString(), customerName:`زبون ${d+1}-${i+1}`, customerPhone:'', type:['صالة','سفري','توصيل'][i%3], paymentMethod:['نقدي','بطاقة','آجل'][i%3], cashierName:getCurrentUser().name,
+          items:[{lineId:uid(),productId:p.id,name:p.name,price:p.price,qty:1+i%2,note:'',categoryId:p.categoryId,cost:p.cost}],
+          totals:{subtotal,discount:0,service:0,tax:0,total:subtotal,received:subtotal,change:0}, status:'مباعة', tableId:null
+        });
+      }
+    }
+    saveState(); renderAll(); showToast('تم تحميل بيانات تجريبية');
+  }
+
+  function openModal(title, html){ $('#modalTitle').textContent=title; $('#modalContent').innerHTML=html; $('#modalBackdrop').classList.add('show'); }
+  function closeModal(){ $('#modalBackdrop').classList.remove('show'); $('#modalContent').innerHTML=''; }
+  function createButton(text, cls, onClick){ const b=document.createElement('button'); b.className=cls; b.textContent=text; b.addEventListener('click', onClick); return b; }
+  function downloadFile(name, content, type){ const blob = new Blob([content], {type}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=name; a.click(); URL.revokeObjectURL(a.href); }
+
+  init();
+})();
+</script>
+</body>
+</html>
